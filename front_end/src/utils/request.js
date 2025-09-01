@@ -93,3 +93,18 @@ export const patchAuth = async (Path, options = {}) => {
     const data = await response.json();
     return data;
 };
+
+export const putAuth = async (Path, options = {}) => {
+    const token = getCookie("token");
+    const response = await fetch(`${API_DOMAIN}${Path}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(options),
+    });
+    const data = await response.json();
+    return data;
+};

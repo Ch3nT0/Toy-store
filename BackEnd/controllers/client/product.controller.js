@@ -7,7 +7,7 @@ const Review = require("../../models/review.model");
 module.exports.getProducts = async (req, res) => {
     const query = req.query;
     const search = searchHelper(req.query);
-    const count = await Product.countDocuments();
+    const count = await Product.countDocuments(search);
     const paging = paginationHelper({ currentPage: 1, limitItem: 10 }, query, count);
     const product = await Product.find(search)
         .select("name price discount images rating reviewCount")

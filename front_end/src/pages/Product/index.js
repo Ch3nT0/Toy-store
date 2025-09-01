@@ -1,19 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { getProduct } from "../../services/productService";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { updateCart } from "../../services/cartService";
 
 function Product() {
     const [products, setProducts] = useState([]);
-    const [page, setPage] = useState(1);
     const [totalPage, setTotalPage] = useState(1);
 
     const navigate = useNavigate();
-    const [searchParams] = useSearchParams();
-    const keyword = searchParams.get("keyword") || "";
+    const [searchParams, setSearchParams] = useSearchParams();
 
-    useEffect(() => {
-        setPage(1);
-    }, [keyword]);
+    const keyword = searchParams.get("keyword") || "";
+    const page = parseInt(searchParams.get("page") || "1", 10);
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -34,17 +32,27 @@ function Product() {
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPage) {
-            setPage(newPage);
+            // Cập nhật query param page
+            setSearchParams({ keyword, page: newPage });
+        }
+    };
+
+    const handleAddCart = async (IdProduct) => {
+        try {
+            const res = await updateCart(IdProduct, 1);
+            alert(res.message);
+        } catch (error) {
+            console.error("Add cart error:", error);
         }
     };
 
     return (
         <section className="max-w-6xl mx-auto">
-            {/* Nếu không tìm thấy sản phẩm */}
             {products.length === 0 ? (
                 <p className="text-center text-gray-600">Không tìm thấy sản phẩm phù hợp.</p>
             ) : (
                 <>
+                    {/* List sản phẩm */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         {products.map((product) => (
                             <div
@@ -52,7 +60,6 @@ function Product() {
                                 className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
                                 onClick={() => handleClick(product._id)}
                             >
-                                {/* Ảnh sản phẩm */}
                                 <div className="relative w-full overflow-hidden">
                                     <img
                                         src={product.images}
@@ -66,11 +73,9 @@ function Product() {
                                     )}
                                 </div>
 
-                                {/* Thông tin sản phẩm */}
                                 <div className="p-4 flex flex-col flex-1">
                                     <h3 className="text-lg font-bold text-gray-800 truncate">{product.name}</h3>
 
-                                    {/* Giá sản phẩm */}
                                     <div className="mt-2 flex items-baseline gap-2">
                                         {product.discount > 0 ? (
                                             <>
@@ -88,12 +93,23 @@ function Product() {
                                         )}
                                     </div>
 
-                                    {/* Nút hành động */}
                                     <div className="mt-4 flex gap-3">
-                                        <button className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddCart(product._id);
+                                            }}
+                                        >
                                             Thêm vào giỏ
                                         </button>
-                                        <button className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                // xử lý mua ngay
+                                            }}
+                                        >
                                             Mua ngay
                                         </button>
                                     </div>
@@ -116,7 +132,9 @@ function Product() {
                             <button
                                 key={i + 1}
                                 onClick={() => handlePageChange(i + 1)}
-                                className={`px-3 py-1 rounded ${page === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200 hover:bg-gray-300"
+                                className={`px-3 py-1 rounded ${page === i + 1
+                                        ? "bg-blue-500 text-white"
+                                        : "bg-gray-200 hover:bg-gray-300"
                                     }`}
                             >
                                 {i + 1}

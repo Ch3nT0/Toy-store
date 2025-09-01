@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getProductByID } from "../../services/productService";
+import { updateCart } from "../../services/cartService";
 
 function DetailProduct() {
     const { id } = useParams();
@@ -15,6 +16,14 @@ function DetailProduct() {
     }, [id]);
 
     if (!product) return <div className="text-center mt-20">Loading...</div>;
+    const handleAddCart = async (IdProduct) => {
+        try {
+            const res = await updateCart(IdProduct, 1);
+            alert(res.message);
+        } catch (error) {
+            console.error("Add cart error:", error);
+        }
+    };
 
     return (
         <div className="max-w-5xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg flex flex-col md:flex-row gap-8">
@@ -66,7 +75,10 @@ function DetailProduct() {
 
                 {/* Nút mua */}
                 <div className="mt-6 flex gap-4">
-                    <button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition">
+                    <button className="flex-1 bg-green-500 hover:bg-green-600 text-white font-semibold py-3 rounded-lg transition" onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddCart(product._id);
+                    }}>
                         Thêm vào giỏ
                     </button>
                     <button className="flex-1 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 rounded-lg transition">

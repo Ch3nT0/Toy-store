@@ -12,7 +12,6 @@ export const getProductTopSale = async () => {
 
 export const getProduct = async (page = 1, limit = 8, keyword = "") => {
     const result = await get(`products?page=${page}&limit=${limit}&keyword=${encodeURIComponent(keyword)}`);
-    console.log(result)
     return result;
 }
 
