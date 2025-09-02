@@ -71,12 +71,27 @@ function LayoutDefault() {
                 {/* Account */}
                 <div className="space-x-4 font-medium">
                     {isLogin ? (
-                        <NavLink
-                            to="/logout"
-                            className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
-                        >
-                            Đăng xuất
-                        </NavLink>
+                        <>
+                            <div className="flex items-center space-x-4">
+                                {/* Avatar */}
+                                <NavLink to="/profile">
+                                    <img
+                                        src="/user.png"
+                                        alt="Avatar"
+                                        className="w-10 h-10 rounded-full border border-gray-300 hover:ring-2 hover:ring-blue-400 transition"
+                                    />
+                                </NavLink>
+
+                                {/* Logout button */}
+                                <NavLink
+                                    to="/logout"
+                                    className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
+                                >
+                                    Đăng xuất
+                                </NavLink>
+                            </div>
+                        </>
+
                     ) : (
                         <>
                             <NavLink

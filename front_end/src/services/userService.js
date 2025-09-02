@@ -1,4 +1,4 @@
-import { post, postAuth } from "../utils/request";
+import { getAuth, post, postAuth } from "../utils/request";
 export const login = async (email, password) => {
     const result = await post(`users/login`, { email, password });
     return result;
@@ -20,5 +20,10 @@ export const verifyOtp = async (email, otp) => {
 
 export const resetPassword = async (password) => {
     const result = await postAuth("users/password/reset", { password });
+    return result;
+};
+
+export const getUserByID = async () => {
+    const result = await getAuth(`users/detail`);
     return result;
 };

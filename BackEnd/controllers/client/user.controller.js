@@ -120,6 +120,6 @@ module.exports.resetPassword = async (req, res) => {
 
 // [GET] /users/detail
 module.exports.detail = async (req, res) => {
-    res.json({ code: 200, message: "Thành công", info: req.user });
+    res.json({ code: 200, message: "Thành công", data: req.user });
 };
 

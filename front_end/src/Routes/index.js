@@ -8,6 +8,7 @@ import Product from "../pages/Product";
 import DetailProduct from "../pages/DetailProduct";
 import ForgotPassword from "../pages/ForgotPassword";
 import Cart from "../pages/Cart";
+import Profile from "../pages/Profile";
 
 export const routes = [
     {
@@ -36,6 +37,10 @@ export const routes = [
             {
                 element: <PrivateRoutes />,
                 children: [
+                    {
+                        path: 'profile',
+                        element: <Profile />
+                    },
                 ]
             }
         ]
