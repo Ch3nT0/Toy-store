@@ -15,8 +15,7 @@ const clientSchema = new mongoose.Schema(
         required: true
     },
     userId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
+        type: String,
         default: null
     },
     deleted: {

@@ -9,6 +9,7 @@ import DetailProduct from "../pages/DetailProduct";
 import ForgotPassword from "../pages/ForgotPassword";
 import Cart from "../pages/Cart";
 import Profile from "../pages/Profile";
+import Payment from "../pages/payment";
 
 export const routes = [
     {
@@ -24,13 +25,23 @@ export const routes = [
                 element: <Logout />
             },
             {
-                path: 'product',
-                element: <Product />
-            },
-            {
-                path: 'product/:id',
-                element: <DetailProduct />
-            }, {
+                path: "product",
+                children: [
+                    {
+                        index: true,
+                        element: <Product />
+                    },
+                    {
+                        path: ":id",
+                        element: <DetailProduct />
+                    },
+                    {
+                        path: "payment/:id",
+                        element: <Payment />
+                    }
+                ]
+            }
+            , {
                 path: 'cart',
                 element: <Cart />
             },

@@ -1,4 +1,5 @@
 const Client = require("../../models/client.model");
+const User = require("../../models/user.model");
 
 // [POST] /client
 module.exports.register = async (req, res) => {
@@ -11,7 +12,7 @@ module.exports.register = async (req, res) => {
         userId
     });
     await client.save();
-    res.json({ code: 200, message: "Đăng ký thành công" });
+    res.json({ code: 200, message: "Đăng ký thành công",data:client });
 };
 
 // [PUT] /client/:id
@@ -35,14 +36,12 @@ module.exports.update = async (req, res) => {
     }
 };
 
-
-// [GET] /client
+// [GET] /client/detail
 module.exports.detail = async (req, res) => {
     const userId = req.user._id;
-    const Clients = await Client.find({ userId: userId });
+    const Clients = await Client.find({userId:userId});
     res.json({ code: 200, message: "Thành công", data: Clients });
 };
-
 
 // [DELETE] /client/:id
 module.exports.remove = async (req, res) => {

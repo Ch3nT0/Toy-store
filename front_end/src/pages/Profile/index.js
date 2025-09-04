@@ -1,19 +1,11 @@
 import { useEffect, useState } from "react";
 import { getUserByID } from "../../services/userService";
 import { getOrderByID } from "../../services/orderService";
-import { getClient } from "../../services/clientService";
 
 function Profile() {
   const [user, setUser] = useState(null);
   const [orders, setOrders] = useState([]);
   const [openDetails, setOpenDetails] = useState({});
-
-
-  const fetchClient = async () => {
-    const data = await getClient();
-    console.log(data)
-  };
-  fetchClient();
 
   useEffect(() => {
     const fetchUser = async () => {
