@@ -107,7 +107,8 @@ function Product() {
                                             className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                // xử lý mua ngay
+                                                navigate(`/product/payment/${product._id}`);
+
                                             }}
                                         >
                                             Mua ngay

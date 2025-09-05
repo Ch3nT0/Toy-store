@@ -10,6 +10,7 @@ import ForgotPassword from "../pages/ForgotPassword";
 import Cart from "../pages/Cart";
 import Profile from "../pages/Profile";
 import Payment from "../pages/payment";
+import PaymenCart from "../pages/paymentCart";
 
 export const routes = [
     {
@@ -44,6 +45,9 @@ export const routes = [
             , {
                 path: 'cart',
                 element: <Cart />
+            },{
+                path: 'cart/payment',
+                element: <PaymenCart />
             },
             {
                 element: <PrivateRoutes />,

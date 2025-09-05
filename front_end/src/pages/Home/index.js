@@ -7,13 +7,26 @@ import 'swiper/css/pagination';
 import 'swiper/css/thumbs';
 import { getThumb } from "../../services/aboutService";
 import { getProductTopDiscount, getProductTopSale } from "../../services/productService";
+import { useNavigate } from "react-router-dom";
+import { updateCart } from "../../services/cartService";
 
 
 function Home() {
+    const navigate = useNavigate();
     const [thumb, setThumb] = React.useState([]);
     const [topSaleProducts, setTopSaleProducts] = React.useState([]);
     const [topHotProducts, setTopHotProducts] = React.useState([]);
     const [thumbsSwiper] = React.useState(null);
+
+
+    const handleAddCart = async (IdProduct) => {
+        try {
+            const res = await updateCart(IdProduct, 1);
+            alert(res.message);
+        } catch (error) {
+            console.error("Add cart error:", error);
+        }
+    };
 
     // Lấy thumb
     useEffect(() => {
@@ -130,10 +143,22 @@ function Home() {
                                     </div>
 
                                     <div className="mt-4 flex gap-3">
-                                        <button className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddCart(product._id);
+                                            }}
+                                        >
                                             Thêm vào giỏ
                                         </button>
-                                        <button className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/product/payment/${product._id}`);
+                                            }}
+                                        >
                                             Mua ngay
                                         </button>
                                     </div>
@@ -217,10 +242,22 @@ function Home() {
                                     </div>
 
                                     <div className="mt-4 flex gap-3">
-                                        <button className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-green-500 text-white rounded-xl hover:bg-green-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleAddCart(product._id);
+                                            }}
+                                        >
                                             Thêm vào giỏ
                                         </button>
-                                        <button className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold">
+                                        <button
+                                            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition font-semibold"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                navigate(`/product/payment/${product._id}`);
+                                            }}
+                                        >
                                             Mua ngay
                                         </button>
                                     </div>
