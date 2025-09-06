@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { getCookie } from '../../helpers/cookie';
 import { useEffect, useState } from 'react';
 import { checkLogin } from '../../actions/login';
-import { getAbout } from '../../services/aboutService';
+import { getAbout } from '../../services/client/aboutService';
 
 function LayoutDefault() {
     const dispatch = useDispatch();

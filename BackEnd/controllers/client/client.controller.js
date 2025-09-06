@@ -12,7 +12,7 @@ module.exports.register = async (req, res) => {
         userId
     });
     await client.save();
-    res.json({ code: 200, message: "Đăng ký thành công",data:client });
+    res.json({ code: 200, message: "Đăng ký thành công", data: client });
 };
 
 // [PUT] /client/:id
@@ -38,8 +38,11 @@ module.exports.update = async (req, res) => {
 
 // [GET] /client/detail
 module.exports.detail = async (req, res) => {
+    if (!req.user || !req.user._id) {
+        return res.json({ code: 200, message: "Thành công", data: [] });
+    }
     const userId = req.user._id;
-    const Clients = await Client.find({userId:userId});
+    const Clients = await Client.find({ userId: userId });
     res.json({ code: 200, message: "Thành công", data: Clients });
 };
 

@@ -1,16 +1,20 @@
 import PrivateRoutes from "../components/PrivateRoutes";
 import LayoutDefault from "../layout/LayoutDefault";
-import Home from "../pages/Home";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import Logout from "../pages/Logout";
-import Product from "../pages/Product";
-import DetailProduct from "../pages/DetailProduct";
-import ForgotPassword from "../pages/ForgotPassword";
-import Cart from "../pages/Cart";
-import Profile from "../pages/Profile";
-import Payment from "../pages/payment";
-import PaymenCart from "../pages/paymentCart";
+import Home from "../pages/Client/Home";
+import Login from "../pages/Client/Login";
+import Register from "../pages/Client/Register";
+import Logout from "../pages/Client/Logout";
+import Product from "../pages/Client/Product";
+import DetailProduct from "../pages/Client/DetailProduct";
+import ForgotPassword from "../pages/Client/ForgotPassword";
+import Cart from "../pages/Client/Cart";
+import Profile from "../pages/Client/Profile";
+import Payment from "../pages/Client/payment";
+import PaymenCart from "../pages/Client/paymentCart";
+import LayoutAdmin from "../layout/LayoutAdmin";
+import DashboardAdmin from "../pages/admin/dashboard";
+
+const URL_ADMIN = '/admin'
 
 export const routes = [
     {
@@ -45,7 +49,7 @@ export const routes = [
             , {
                 path: 'cart',
                 element: <Cart />
-            },{
+            }, {
                 path: 'cart/payment',
                 element: <PaymenCart />
             },
@@ -71,5 +75,15 @@ export const routes = [
     {
         path: 'forgot-password',
         element: <ForgotPassword />
+    },
+    {
+        path: URL_ADMIN,
+        element: <LayoutAdmin />,
+        children: [
+            {
+                index: true, 
+                element: <DashboardAdmin />
+            }
+        ]
     }
 ]
