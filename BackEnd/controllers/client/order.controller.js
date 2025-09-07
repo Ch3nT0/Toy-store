@@ -96,6 +96,7 @@ module.exports.orderProduct = async (req, res) => {
 module.exports.orderCart = async (req, res) => {
     try {
         const { cartId, fullName, address, phone, dicount, paymentMethod } = req.body;
+        console.log(req.body);
 
         const cart = await Cart.findOne({ _id: cartId }).select("userId products");
         if (!cart) {

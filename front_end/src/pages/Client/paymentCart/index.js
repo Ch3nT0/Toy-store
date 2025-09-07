@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getCart } from "../../../services/client/cartService";
 import { getClient, createClient, updateClient } from "../../../services/client/clientService";
+import { createOrderFromCart } from "../../../services/client/orderService";
 
 function CartPayment() {
   const [cart, setCart] = useState([]);
@@ -61,17 +62,35 @@ function CartPayment() {
     }
   };
 
-  const handlePayment = () => {
+  const handlePayment = async () => {
     if (!selectedClient) {
       alert("Vui lòng chọn địa chỉ giao hàng!");
       return;
     }
-    console.log("Thanh toán giỏ hàng:", {
-      cart,
-      client: clients.find(c => c._id === selectedClient),
-      paymentMethod,
-      total,
-    });
+
+    try {
+      // Lấy client đã chọn
+      const clientInfo = clients.find(c => c._id === selectedClient);
+
+      // Lấy cartId (backend yêu cầu)
+      const cartId = localStorage.getItem("cartId");
+      if (!cartId) {
+        alert("Không tìm thấy giỏ hàng!");
+        return;
+      }
+
+      // Gọi API tạo order
+      const res = await createOrderFromCart(cartId, clientInfo, paymentMethod);
+
+      alert(res.message);
+      console.log("Order created:", res);
+
+      // Ví dụ: chuyển hướng sang trang chi tiết đơn hàng
+      // navigate(`/order/${res.orderId}`);
+    } catch (error) {
+      console.error("Thanh toán thất bại:", error);
+      alert("Thanh toán thất bại, vui lòng thử lại!");
+    }
   };
 
   return (

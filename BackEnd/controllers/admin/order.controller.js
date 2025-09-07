@@ -51,10 +51,52 @@ exports.getOrders = async (req, res) => {
             message: "Orders retrieved successfully",
             data: orders
         });
-    }catch{
+    } catch {
         res.json({
             code: 500,
             message: "Error retrieving orders",
         });
     }
 }
+
+// [GET] /order/revenue/6-months
+exports.getRevenueLast6Months = async (req, res) => {
+    try {
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        const revenue = await Order.aggregate([
+            {
+                $match: {
+                    createdAt: { $gte: sixMonthsAgo }
+                }
+            },
+            {
+                $group: {
+                    _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
+                    totalRevenue: { $sum: "$totalPrice" }
+                }
+            },
+            {
+                $sort: { "_id.year": 1, "_id.month": 1 }
+            }
+        ]);
+
+        const formatted = revenue.map(r => ({
+            year: r._id.year,
+            month: r._id.month,
+            totalRevenue: r.totalRevenue
+        }));
+
+        res.json({
+            code: 200,
+            message: "Revenue last 6 months retrieved successfully",
+            data: formatted
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            code: 500,
+            message: "Error retrieving revenue",
+        });
+    }
+};
