@@ -13,6 +13,9 @@ import Payment from "../pages/Client/payment";
 import PaymenCart from "../pages/Client/paymentCart";
 import LayoutAdmin from "../layout/LayoutAdmin";
 import DashboardAdmin from "../pages/admin/dashboard";
+import ProductAdmin from "../pages/admin/Product";
+import UserAdmin from "../pages/admin/User";
+import OrderAdmin from "../pages/admin/Order";
 
 const URL_ADMIN = '/admin'
 
@@ -81,9 +84,21 @@ export const routes = [
         element: <LayoutAdmin />,
         children: [
             {
-                index: true, 
+                path:'dashboard',
                 element: <DashboardAdmin />
-            }
+            },
+            {
+                path: 'products', 
+                element: <ProductAdmin />
+            },
+            {
+                path: 'users', 
+                element: <UserAdmin />
+            },
+            {
+                path: 'orders', 
+                element: <OrderAdmin />
+            },
         ]
     }
 ]

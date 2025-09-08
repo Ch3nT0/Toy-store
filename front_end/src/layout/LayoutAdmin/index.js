@@ -26,7 +26,7 @@ function LayoutAdmin() {
         <aside className="w-64 bg-white shadow-lg border-r border-gray-200 p-6">
           <h2 className="text-xl font-bold text-blue-600 mb-4">Admin Panel</h2>
           <nav className="space-y-2">
-            <NavLink to="/admin" className={navLinkClass}>
+            <NavLink to="/admin/dashboard" className={navLinkClass}>
               Dashboard
             </NavLink>
             <NavLink to="/admin/products" className={navLinkClass}>

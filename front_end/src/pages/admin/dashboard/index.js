@@ -1,12 +1,22 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { getDash } from "../../../services/admin/dashboardService";
+import { useEffect, useState } from "react";
 
 function DashboardAdmin() {
-    const stats = [
-        { title: "Sản phẩm", value: 120, color: "bg-blue-500" },
-        { title: "Người dùng", value: 85, color: "bg-green-500" },
-        { title: "Đơn hàng", value: 45, color: "bg-yellow-500" },
-        { title: "Doanh thu", value: "15M", color: "bg-red-500" },
-    ];
+
+    const [dash, setDash] = useState([]);
+
+    useEffect(() => {
+        const fetchDash = async () => {
+            try {
+                const res = await getDash();
+                setDash(res.data);
+            } catch (error) {
+                console.error("Error fetching products:", error);
+            }
+        };
+        fetchDash();
+    }, []);
 
     const chartData = [
         { month: "Jan", sales: 4000 },
@@ -27,7 +37,7 @@ function DashboardAdmin() {
         <div className="space-y-8">
             {/* Thống kê */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((item, index) => (
+                {dash.map((item, index) => (
                     <div key={index} className="bg-white shadow-md rounded-xl p-6 flex flex-col items-center">
                         <div className={`w-12 h-12 ${item.color} rounded-full flex items-center justify-center text-white font-bold text-lg`}>
                             {item.value}
@@ -71,10 +81,10 @@ function DashboardAdmin() {
                                 <td className="p-2 border">
                                     <span
                                         className={`px-2 py-1 rounded text-sm ${order.status === "Hoàn tất"
-                                                ? "bg-green-100 text-green-600"
-                                                : order.status === "Đang xử lý"
-                                                    ? "bg-yellow-100 text-yellow-600"
-                                                    : "bg-blue-100 text-blue-600"
+                                            ? "bg-green-100 text-green-600"
+                                            : order.status === "Đang xử lý"
+                                                ? "bg-yellow-100 text-yellow-600"
+                                                : "bg-blue-100 text-blue-600"
                                             }`}
                                     >
                                         {order.status}
