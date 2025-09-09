@@ -1,6 +1,6 @@
-import { get } from "../../utils/request";
+import { get } from "../../utils/requestAdmin";
 
 export const getDash = async () => {
-    const result = await get(`admin/dashboard`);
+    const result = await get(`/dashboard`);
     return result;
 };

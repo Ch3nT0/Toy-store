@@ -16,6 +16,8 @@ import DashboardAdmin from "../pages/admin/dashboard";
 import ProductAdmin from "../pages/admin/Product";
 import UserAdmin from "../pages/admin/User";
 import OrderAdmin from "../pages/admin/Order";
+import EditProduct from "../pages/admin/EditProduct";
+import AddProduct from "../pages/admin/AddProduct";
 
 const URL_ADMIN = '/admin'
 
@@ -90,6 +92,12 @@ export const routes = [
             {
                 path: 'products', 
                 element: <ProductAdmin />
+            },{
+                path: 'products/edit/:id', 
+                element: <EditProduct />
+            },{
+                path: 'products/add', 
+                element: <AddProduct />
             },
             {
                 path: 'users', 
