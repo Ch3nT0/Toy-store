@@ -8,12 +8,12 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN;
 
 // [GET] /users/detail
 module.exports.detail = async (req, res) => {
-    res.json({ code: 200, message: "Thành công", info: req.user });
+    res.json({ code: 200, message: "Thành công", data: req.user });
 };
 
 //[GET] /users
 module.exports.list = async (req, res) => {
     const users = await User.find().select("-password");
-    res.json({ code: 200, message: "Thành công", info: users });
+    res.json({ code: 200, message: "Thành công", data: users });
 }
 

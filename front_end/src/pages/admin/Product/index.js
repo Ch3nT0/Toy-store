@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getProduct } from "../../../services/client/productService";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { deleteProduct } from "../../../services/admin/productService";
 
 function ProductAdmin() {
     const [products, setProducts] = useState([]);
@@ -38,10 +39,8 @@ function ProductAdmin() {
     const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
             try {
-                // TODO: gọi API xóa sản phẩm
-                // await deleteProduct(id);
-                alert("Xoá sản phẩm thành công!");
-                // load lại danh sách
+                const data = await deleteProduct(id);
+                alert(data.message);
                 const res = await getProduct(page, 10, keyword);
                 setProducts(res.data);
             } catch (error) {
