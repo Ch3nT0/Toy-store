@@ -6,5 +6,6 @@ router.get('/user/:id',controller.getOrdersByUser);
 router.get('/:id',controller.getOrderByID);
 router.get('/',controller.getOrders);
 router.get('/revenue/6-months',controller.getRevenueLast6Months);
+router.delete('/:id',controller.deleteOrderByID);
 
 module.exports = router;

@@ -18,6 +18,7 @@ import UserAdmin from "../pages/admin/User";
 import OrderAdmin from "../pages/admin/Order";
 import EditProduct from "../pages/admin/EditProduct";
 import AddProduct from "../pages/admin/AddProduct";
+import SettingAdmin from "../pages/admin/Setting";
 
 const URL_ADMIN = '/admin'
 
@@ -106,6 +107,9 @@ export const routes = [
             {
                 path: 'orders', 
                 element: <OrderAdmin />
+            },{
+                path: 'settings', 
+                element: <SettingAdmin />
             },
         ]
     }

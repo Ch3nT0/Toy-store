@@ -39,6 +39,22 @@ exports.getOrderByID = async (req, res) => {
     }
 }
 
+//[DELETE] order/:id
+exports.deleteOrderByID = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const order = await Order.findById(id);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found" });
+        } else {
+            await Order.findByIdAndDelete(id);
+            return res.status(200).json({ message: "Xoá đơn hàng thành công" });
+        }
+    } catch {
+        return res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
 //[GET] order
 exports.getOrders = async (req, res) => {
     try {
