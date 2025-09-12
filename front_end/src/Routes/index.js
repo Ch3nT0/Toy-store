@@ -19,6 +19,7 @@ import OrderAdmin from "../pages/admin/Order";
 import EditProduct from "../pages/admin/EditProduct";
 import AddProduct from "../pages/admin/AddProduct";
 import SettingAdmin from "../pages/admin/Setting";
+import LoginAdmin from "../pages/admin/Login";
 
 const URL_ADMIN = '/admin'
 
@@ -79,8 +80,11 @@ export const routes = [
         element: <Register />
     },
     {
-        path: 'forgot-password',
-        element: <ForgotPassword />
+        path: `${URL_ADMIN}/login`,
+        element: <LoginAdmin />
+    },{
+        path: URL_ADMIN,
+        element: <LayoutAdmin />,
     },
     {
         path: URL_ADMIN,
