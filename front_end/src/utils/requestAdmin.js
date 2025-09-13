@@ -54,7 +54,7 @@ export const patch = async (path, options = {}) => {
 };
 
 export const getAuth = async (Path) => {
-    const token = getCookie("token");
+    const token = getCookie("admin_token");
     const response = await fetch(`${API_DOMAIN}${Path}`, {
         headers: {
             Authorization: `Bearer ${token}`,
@@ -66,7 +66,7 @@ export const getAuth = async (Path) => {
 };
 
 export const postAuth = async (Path, options) => {
-    const token = getCookie("token");
+    const token = getCookie("admin_token");
     const response = await fetch(`${API_DOMAIN}${Path}`, {
         method: "POST",
         headers: {
@@ -81,7 +81,7 @@ export const postAuth = async (Path, options) => {
 };
 
 export const delAuth = async (Path) => {
-    const token = getCookie("token");
+    const token = getCookie("admin_token");
     const response = await fetch(`${API_DOMAIN}${Path}`, {
         method: "DELETE",
         headers: {
@@ -94,7 +94,7 @@ export const delAuth = async (Path) => {
 };
 
 export const patchAuth = async (Path, options = {}) => {
-    const token = getCookie("token");
+    const token = getCookie("admin_token");
     const response = await fetch(`${API_DOMAIN}${Path}`, {
         method: "PATCH",
         headers: {
@@ -109,7 +109,7 @@ export const patchAuth = async (Path, options = {}) => {
 };
 
 export const putAuth = async (Path, options = {}) => {
-    const token = getCookie("token");
+    const token = getCookie("admin_token");
     const response = await fetch(`${API_DOMAIN}${Path}`, {
         method: "PUT",
         headers: {

@@ -1,6 +1,6 @@
-import { get } from "../../utils/requestAdmin";
+import { getAuth } from "../../utils/requestAdmin";
 
 export const getListUser = async () => {
-    const result = await get(`/users/list`);
+    const result = await getAuth(`/users/list`);
     return result;
 };

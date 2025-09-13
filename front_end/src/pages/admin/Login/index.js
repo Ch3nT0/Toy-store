@@ -12,13 +12,12 @@ function LoginAdmin() {
         e.preventDefault();
         const email = e.target[0].value;
         const password = e.target[1].value;
-
-        const response = await loginAdmin(email, password);
-
+        const response = await loginAdmin({email, password});
+        console.log(response)
         if (response.code === 200) {
             dispatch(checkLogin(true));
-            setCookie("admin_token", response.token); // cookie riêng cho admin
-            navigate("/admin/dashboard"); // điều hướng tới trang admin
+            setCookie("admin_token", response.token); 
+            navigate("/admin/dashboard"); 
         } else {
             alert(response.message || "Sai tài khoản hoặc mật khẩu admin");
         }
