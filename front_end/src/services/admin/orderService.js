@@ -1,7 +1,7 @@
 import {  delAuth, getAuth, putAuth } from "../../utils/requestAdmin";
 
-export const getOrders = async () => {
-    const result = await getAuth(`/order`);
+export const getOrders = async (status) => {
+    const result = await getAuth(`/order?status=${status}`);
     return result;
 };
 

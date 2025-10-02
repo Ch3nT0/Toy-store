@@ -5,8 +5,10 @@ import { getCookie } from "../../helpers/cookie";
 
 function LayoutAdmin() {
   const [aboutUs, setAboutUs] = useState(null);
-  const token = getCookie('admin_token');
+  const [ordersOpen, setOrdersOpen] = useState(false); // để toggle submenu
+  const token = getCookie("admin_token");
   const navigate = useNavigate();
+
   useEffect(() => {
     if (!token) {
       navigate("/admin/login");
@@ -28,28 +30,68 @@ function LayoutAdmin() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50 text-gray-800">
-      {/* Main */}
       <main className="flex flex-grow">
-        {/* Sidebar bên trái */}
-        <aside className="w-64 bg-white shadow-lg border-r border-gray-200 p-6">
-          <h2 className="text-xl font-bold text-blue-600 mb-4">Admin Panel</h2>
-          <nav className="space-y-2">
-            <NavLink to="/admin/dashboard" className={navLinkClass}>
-              Dashboard
-            </NavLink>
-            <NavLink to="/admin/products" className={navLinkClass}>
-              Quản lý sản phẩm
-            </NavLink>
-            <NavLink to="/admin/users" className={navLinkClass}>
-              Quản lý người dùng
-            </NavLink>
-            <NavLink to="/admin/orders" className={navLinkClass}>
-              Quản lý đơn hàng
-            </NavLink>
-            <NavLink to="/admin/settings" className={navLinkClass}>
-              Cài đặt
-            </NavLink>
-          </nav>
+        {/* Sidebar */}
+        <aside className="w-64 bg-white shadow-lg border-r border-gray-200 p-6 flex flex-col justify-between">
+          <div>
+            <h2 className="text-xl font-bold text-blue-600 mb-4">Admin Panel</h2>
+            <nav className="space-y-2">
+              <NavLink to="/admin/dashboard" className={navLinkClass}>
+                Dashboard
+              </NavLink>
+              <NavLink to="/admin/products" className={navLinkClass}>
+                Quản lý sản phẩm
+              </NavLink>
+              <NavLink to="/admin/users" className={navLinkClass}>
+                Quản lý người dùng
+              </NavLink>
+
+              {/* Orders collapsible menu */}
+              <div>
+                <button
+                  onClick={() => setOrdersOpen(!ordersOpen)}
+                  className="w-full text-left py-2 px-4 rounded-lg hover:bg-blue-100 flex justify-between items-center transition"
+                >
+                  Quản lý đơn hàng
+                  <span className="text-gray-500">{ordersOpen ? "▾" : "▸"}</span>
+                </button>
+                {ordersOpen && (
+                  <div className="pl-4 mt-1 space-y-1">
+                    <NavLink to="/admin/orders/pending" className={navLinkClass}>
+                      Pending
+                    </NavLink>
+                    <NavLink to="/admin/orders/processing" className={navLinkClass}>
+                      Processing
+                    </NavLink>
+                    <NavLink to="/admin/orders/shipping" className={navLinkClass}>
+                      Shipping
+                    </NavLink>
+                    <NavLink to="/admin/orders/delivered" className={navLinkClass}>
+                      Delivered
+                    </NavLink>
+                    <NavLink to="/admin/orders/completed" className={navLinkClass}>
+                      Completed
+                    </NavLink>
+                    <NavLink to="/admin/orders/cancelled" className={navLinkClass}>
+                      Cancelled
+                    </NavLink>
+                  </div>
+                )}
+              </div>
+
+              <NavLink to="/admin/settings" className={navLinkClass}>
+                Cài đặt
+              </NavLink>
+            </nav>
+          </div>
+
+          {/* Footer nhỏ sidebar */}
+          {aboutUs && (
+            <div className="mt-6 text-sm text-gray-500">
+              <p>{aboutUs.tenCongty}</p>
+              <p>{aboutUs.sdt}</p>
+            </div>
+          )}
         </aside>
 
         {/* Content chính */}
@@ -58,8 +100,8 @@ function LayoutAdmin() {
         </div>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-black text-white">
+      {/* Footer toàn cục */}
+      <footer className="bg-black text-white mt-auto">
         {aboutUs ? (
           <div className="max-w-6xl mx-auto px-6 py-6 grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
@@ -68,7 +110,6 @@ function LayoutAdmin() {
               <p>Địa chỉ: {aboutUs.diachi}</p>
               <p>Email: {aboutUs.email}</p>
             </div>
-
             <div>
               <h4 className="font-semibold mb-2">Mạng xã hội</h4>
               <p>
@@ -102,17 +143,15 @@ function LayoutAdmin() {
                 </a>
               </p>
             </div>
-
             <div></div>
           </div>
         ) : (
           <p className="text-center py-4">Loading footer...</p>
         )}
+        <div className="bg-black text-white text-center py-3 border-t border-gray-700">
+          <p>Copyright © 2025 by ChenDev</p>
+        </div>
       </footer>
-
-      <div className="bg-black text-white text-center py-3 border-t border-gray-700">
-        <p>Copyright © 2025 by ChenDev</p>
-      </div>
     </div>
   );
 }

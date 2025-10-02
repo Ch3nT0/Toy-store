@@ -56,25 +56,28 @@ exports.deleteOrderByID = async (req, res) => {
     }
 }
 
-//[GET] order
+// [GET] /order?status=
 exports.getOrders = async (req, res) => {
     try {
-        const orders = await Order.find();
-        if (!orders) {
+        const { status } = req.query;
+        const orders = await Order.find({status: status});
+        if (!orders || orders.length === 0) {
             return res.status(404).json({ message: "No orders found" });
         }
+
         res.json({
             code: 200,
             message: "Orders retrieved successfully",
             data: orders
         });
-    } catch {
-        res.json({
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
             code: 500,
             message: "Error retrieving orders",
         });
     }
-}
+};
 
 // [GET] /order/revenue/6-months
 exports.getRevenueLast6Months = async (req, res) => {
@@ -118,44 +121,44 @@ exports.getRevenueLast6Months = async (req, res) => {
     }
 };
 
-// [PUT] /orders/:id/status
+// [PUT] /order/:id/status
 exports.updateOrderStatus = async (req, res) => {
     try {
-        const id = req.params.id;
-        const { status } = req.body; 
+        const { id } = req.params;
+        const { status } = req.body;
 
-        // kiểm tra hợp lệ
-        const validStatus = ['pending', 'processing', 'delivered', 'cancelled'];
-        if (!validStatus.includes(status)) {
+        // Kiểm tra status hợp lệ
+        const validStatuses = ["pending", "processing", "shipping", "delivered", "completed", "cancelled"];
+        if (!validStatuses.includes(status)) {
             return res.status(400).json({
                 code: 400,
-                message: "Invalid status value"
+                message: "Trạng thái không hợp lệ"
             });
         }
+        // Tạo object cập nhật
+        const updateData = { status };
+        if (status === "delivered") updateData.deliveredAt = new Date();
+        if (status === "completed") updateData.paidAt = new Date();
 
-        const order = await Order.findByIdAndUpdate(
-            id,
-            { status, deliveredAt: status === 'delivered' ? new Date() : null },
-            { new: true } 
-        );
+        const order = await Order.findByIdAndUpdate(id, updateData, { new: true });
 
         if (!order) {
             return res.status(404).json({
                 code: 404,
-                message: "Order not found"
+                message: "Không tìm thấy đơn hàng"
             });
         }
 
         res.json({
             code: 200,
-            message: "Order status updated successfully",
+            message: "Cập nhật trạng thái đơn hàng thành công",
             data: order
         });
     } catch (error) {
         console.error("Update Order Status Error:", error);
         res.status(500).json({
             code: 500,
-            message: "Error updating order status"
+            message: "Lỗi khi cập nhật trạng thái đơn hàng"
         });
     }
 };
