@@ -6,14 +6,12 @@ export const getOrderByID = async () => {
 };
 
 
-export const createOrderFromCart = async (cartId, client, paymentMethod) => {
-    console.log(cartId)
-  const res = await postAuth("/order/cart", {
-    cartId,
+export const createOrderFromCart = async (client, paymentMethod) => {
+  const res = await postAuth("order/cart", {
     fullName: client.fullName,
     address: client.address,
     phone: client.phone,
     paymentMethod,
   });
-  return res.data;
+  return res;
 };

@@ -9,6 +9,7 @@ const orderSchema = new mongoose.Schema({
     },
     products: [
         {
+            _id: false,
             productId: String,
             quantity: {
                 type: Number,
@@ -35,7 +36,7 @@ const orderSchema = new mongoose.Schema({
     deliveredAt: Date,
     status: {
         type: String,
-        enum: ['pending', 'processing', 'delivered', 'cancelled'],
+        enum: ['pending', 'processing', 'delivered', 'cancelled', 'shipping','completed'],
         default: 'pending'
     }
 }, {

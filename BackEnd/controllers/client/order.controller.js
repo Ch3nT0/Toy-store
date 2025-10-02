@@ -4,18 +4,18 @@ const Cart = require("../../models/cart.model")
 
 //[GET] /order
 exports.getOrdersByUser = async (req, res) => {
-    try{
+    try {
         const userId = req.user._id;
         const orders = await Order.find({ userId: userId });
-        if(!orders){
+        if (!orders) {
             return res.status(404).json({ message: "No orders found" });
         }
         res.json({
-            code:200,
+            code: 200,
             message: "Orders retrieved successfully",
             data: orders
         });
-    }catch{
+    } catch {
         res.json({
             code: 500,
             message: "Error retrieving orders",
@@ -44,7 +44,7 @@ module.exports.orderProduct = async (req, res) => {
     try {
         const productId = req.params.id;
         const userId = req.user._id;
-        const {  fullName, address, phone, size, color, quantity, paymentMethod, discountAll } = req.body;
+        const { fullName, address, phone, size, color, quantity, paymentMethod, discountAll } = req.body;
 
         const product = await Product.findById(productId);
         if (!product) {
@@ -95,39 +95,46 @@ module.exports.orderProduct = async (req, res) => {
 //[POST] /order/cart
 module.exports.orderCart = async (req, res) => {
     try {
-        const { cartId, fullName, address, phone, dicount, paymentMethod } = req.body;
-        console.log(req.body);
+        const userId = req.user._id;
+        const { fullName, address, phone, discount, paymentMethod } = req.body;
 
-        const cart = await Cart.findOne({ _id: cartId }).select("userId products");
+        // Tìm cart theo userId
+        const cart = await Cart.findOne({ userId }).select("userId products");
         if (!cart) {
             return res.status(400).json({
                 message: 'Không tìm thấy giỏ hàng',
             });
         }
 
-        const { userId, products } = cart;
-
+        const { products } = cart;
         let totalPriceProduct = 0;
 
-        const updatedProducts = await Promise.all(products.map(async (item) => {
-            const product = await Product.findById(item.productId).select("price discount");
-            if (!product) {
-                throw new Error(`Sản phẩm với ID ${item.productId} không tồn tại`);
-            }
+        // Cập nhật thông tin từng sản phẩm
+        const updatedProducts = await Promise.all(
+            products.map(async (item) => {
+                const product = await Product.findById(item.productId).select("price discount");
+                if (!product) {
+                    throw new Error(`Sản phẩm với ID ${item.productId} không tồn tại`);
+                }
 
-            const price = product.price;
-            const discount = product.discount || 0;
-            const finalPrice = price * (1 - discount / 100);
-            const itemTotal = finalPrice * item.quantity;
+                const price = product.price;
+                const discountValue = product.discount || 0;
+                const finalPrice = price * (1 - discountValue / 100);
+                const itemTotal = finalPrice * item.quantity;
 
-            totalPriceProduct += itemTotal;
+                totalPriceProduct += itemTotal;
 
-            return {
-                ...item.toObject(),
-                price,
-                discount
-            };
-        }));
+                return {
+                    ...item.toObject(),
+                    price,
+                    discount: discountValue,
+                    totalPrice: itemTotal  
+                };
+            })
+        );
+
+        // Áp dụng thêm discount toàn đơn (nếu có)
+        const finalOrderTotal = totalPriceProduct * (1 - (discount || 0) / 100);
 
         const newOrder = new Order({
             userId: userId,
@@ -137,22 +144,23 @@ module.exports.orderCart = async (req, res) => {
                 phone
             },
             products: updatedProducts,
-            discount: dicount || 0,
-            totalPrice: totalPriceProduct,
+            discount: discount || 0,
+            totalPrice: finalOrderTotal,  
             paymentMethod,
             status: "pending"
         });
 
-        await newOrder.save();
 
-        res.status(201).json({
+        await newOrder.save();
+        await Cart.deleteOne({ userId });
+        res.json({
             message: "Đặt hàng thành công",
             orderId: newOrder._id,
             order: newOrder
         });
     } catch (error) {
-        res.status(400).json({
-            message: error.message || 'Có lỗi xảy ra khi đặt hàng'
+        res.json({
+            message: 'Có lỗi xảy ra khi đặt hàng'
         });
     }
 };

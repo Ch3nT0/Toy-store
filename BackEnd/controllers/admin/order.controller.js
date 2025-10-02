@@ -26,9 +26,10 @@ exports.getOrdersByUser = async (req, res) => {
 
 //[GET] order/:id
 exports.getOrderByID = async (req, res) => {
+
     try {
         const id = req.params.id;
-        const order = await Order.findById(id);
+        const order = await Order.findOne({ _id: id });
         if (!order) {
             return res.status(404).json({ message: "Order not found" });
         } else {
@@ -113,6 +114,48 @@ exports.getRevenueLast6Months = async (req, res) => {
         res.status(500).json({
             code: 500,
             message: "Error retrieving revenue",
+        });
+    }
+};
+
+// [PUT] /orders/:id/status
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const id = req.params.id;
+        const { status } = req.body; 
+
+        // kiểm tra hợp lệ
+        const validStatus = ['pending', 'processing', 'delivered', 'cancelled'];
+        if (!validStatus.includes(status)) {
+            return res.status(400).json({
+                code: 400,
+                message: "Invalid status value"
+            });
+        }
+
+        const order = await Order.findByIdAndUpdate(
+            id,
+            { status, deliveredAt: status === 'delivered' ? new Date() : null },
+            { new: true } 
+        );
+
+        if (!order) {
+            return res.status(404).json({
+                code: 404,
+                message: "Order not found"
+            });
+        }
+
+        res.json({
+            code: 200,
+            message: "Order status updated successfully",
+            data: order
+        });
+    } catch (error) {
+        console.error("Update Order Status Error:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Error updating order status"
         });
     }
 };

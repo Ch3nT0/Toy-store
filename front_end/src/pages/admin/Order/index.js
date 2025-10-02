@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getOrders, deleteOrder } from "../../../services/admin/orderService";
+import { getOrders, deleteOrder, updateOrderStatus } from "../../../services/admin/orderService";
+import { FaEye, FaTruck, FaTrash } from "react-icons/fa"; // Font Awesome React Icons
 
 function OrderAdmin() {
     const [orders, setOrders] = useState([]);
@@ -16,7 +17,6 @@ function OrderAdmin() {
         const fetchOrders = async () => {
             try {
                 const res = await getOrders(page, 10, keyword);
-                console.log("Orders:", res);
                 setOrders(res.data);
                 setTotalPage(res.totalPage);
             } catch (error) {
@@ -49,8 +49,21 @@ function OrderAdmin() {
         }
     };
 
+    const handleUpdateStatus = async (id) => {
+        if (window.confirm("Xác nhận đơn hàng đã được giao?")) {
+            try {
+                const data = await updateOrderStatus(id, "delivered");
+                alert(data.message || "Cập nhật trạng thái thành công");
+                const res = await getOrders(page, 10, keyword);
+                setOrders(res.data);
+            } catch (error) {
+                console.error("Update status error:", error);
+            }
+        }
+    };
+
     return (
-        <section className="max-w-6xl mx-auto">
+        <section className="max-w-6xl mx-auto p-4">
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Quản lý đơn hàng</h2>
             </div>
@@ -82,25 +95,35 @@ function OrderAdmin() {
                                         {new Date(order.createdAt).toLocaleDateString("vi-VN")}
                                     </td>
                                     <td className="p-3 border text-red-600 font-semibold">
-                                        {order.totalPrice
-                                            ? order.totalPrice.toLocaleString("vi-VN") + "₫"
-                                            : "0₫"}
+                                        {order.totalPrice?.toLocaleString("vi-VN")}₫
                                     </td>
                                     <td className="p-3 border">{order.paymentMethod}</td>
                                     <td className="p-3 border">{order.status}</td>
-                                    <td className="p-3 border space-x-2">
-                                        <button
-                                            onClick={() => handleDetail(order._id)}
-                                            className="px-3 py-1 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                                        >
-                                            Chi tiết
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(order._id)}
-                                            className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
-                                        >
-                                            Xoá
-                                        </button>
+                                    <td className="p-3 border">
+                                        <div className="flex gap-2 justify-center">
+                                            <button
+                                                onClick={() => handleDetail(order._id)}
+                                                className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition"
+                                            >
+                                                <FaEye /> Chi tiết
+                                            </button>
+
+                                            {order.status !== "delivered" && (
+                                                <button
+                                                    onClick={() => handleUpdateStatus(order._id)}
+                                                    className="flex items-center gap-1 px-3 py-1 bg-green-500 text-white rounded-md hover:bg-green-600 transition"
+                                                >
+                                                    <FaTruck /> Giao hàng
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() => handleDelete(order._id)}
+                                                className="flex items-center gap-1 px-3 py-1 bg-red-500 text-white rounded-md hover:bg-red-600 transition"
+                                            >
+                                                <FaTrash /> Xoá
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

@@ -20,6 +20,7 @@ import EditProduct from "../pages/admin/EditProduct";
 import AddProduct from "../pages/admin/AddProduct";
 import SettingAdmin from "../pages/admin/Setting";
 import LoginAdmin from "../pages/admin/Login";
+import OrderDetail from "../pages/admin/OrderDetail";
 
 const URL_ADMIN = '/admin'
 
@@ -90,6 +91,7 @@ export const routes = [
         path: URL_ADMIN,
         element: <LayoutAdmin />,
         children: [
+            
             {
                 path:'dashboard',
                 element: <DashboardAdmin />
@@ -111,6 +113,10 @@ export const routes = [
             {
                 path: 'orders', 
                 element: <OrderAdmin />
+            },
+            {
+                path: 'orders/detail/:id', 
+                element: <OrderDetail />
             },{
                 path: 'settings', 
                 element: <SettingAdmin />

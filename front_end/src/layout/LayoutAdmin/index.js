@@ -1,9 +1,17 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { getAbout } from "../../services/client/aboutService";
+import { getCookie } from "../../helpers/cookie";
 
 function LayoutAdmin() {
   const [aboutUs, setAboutUs] = useState(null);
+  const token = getCookie('admin_token');
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!token) {
+      navigate("/admin/login");
+    }
+  }, [token, navigate]);
 
   useEffect(() => {
     const fetchAbout = async () => {
