@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { createClient, getClient, updateClient } from "../../../services/client/clientService";
 import { getProductByID } from "../../../services/client/productService";
+import { orderProduct } from "../../../services/client/orderService";
 
 function Payment() {
     const { id } = useParams();
@@ -11,8 +12,8 @@ function Payment() {
     const [paymentMethod, setPaymentMethod] = useState("COD");
     const [showForm, setShowForm] = useState(false);
     const [editClient, setEditClient] = useState(null);
-    const [quantity, setQuantity] = useState(1); 
-
+    const [quantity, setQuantity] = useState(1);
+    const navigate = useNavigate();
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -28,17 +29,30 @@ function Payment() {
         fetchData();
     }, [id]);
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         if (!selectedClient) {
             alert("Vui lòng chọn địa chỉ giao hàng!");
             return;
         }
-        console.log("Thanh toán:", {
-            product,
-            client: clients.find(c => c._id === selectedClient),
-            paymentMethod,
-            quantity
-        });
+        const clientInfo = clients.find(c => c._id === selectedClient);
+        try {
+            const res = await orderProduct({
+                product,
+                client: clientInfo,
+                paymentMethod,
+                quantity,
+            });
+
+            if (res.code === 201 || res.message === "Đặt hàng thành công") {
+                alert("Đặt hàng thành công!");
+                navigate(`/`);
+            } else {
+                alert(res.message || "Có lỗi xảy ra khi đặt hàng");
+            }
+        } catch (error) {
+            console.error("Thanh toán thất bại:", error);
+            alert("Thanh toán thất bại, vui lòng thử lại!");
+        }
     };
 
     const handleSaveClient = async (e) => {

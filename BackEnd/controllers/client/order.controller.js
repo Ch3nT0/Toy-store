@@ -39,34 +39,25 @@ exports.getOrderByID = async (req, res) => {
     }
 }
 
-// [POST] order/product/:id
+// [POST] order
 module.exports.orderProduct = async (req, res) => {
     try {
-        const productId = req.params.id;
         const userId = req.user._id;
-        const { fullName, address, phone, size, color, quantity, paymentMethod, discountAll } = req.body;
-
-        const product = await Product.findById(productId);
+        const { client,product,paymentMethod,quantity } = req.body;
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại" });
         }
-
+        const discountAll = 0; 
         const discount = product.discount || 0;
         const price = product.price;
         const totalPriceProduct = (price - discount) * quantity;
 
         const newOrder = new Order({
             userId: userId,
-            client: {
-                fullName,
-                address,
-                phone
-            },
+            client: client,
             products: [
                 {
-                    productId: productId,
-                    size,
-                    color,
+                    productId: product._id,
                     quantity,
                     price,
                     discount,
@@ -165,3 +156,34 @@ module.exports.orderCart = async (req, res) => {
     }
 };
 
+// [PUT] /order/:id/
+exports.updateOrderStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const status = "completed";
+        // Tạo object cập nhật
+        const updateData = { status };
+        updateData.paidAt = new Date();
+
+        const order = await Order.findByIdAndUpdate(id, updateData, { new: true });
+
+        if (!order) {
+            return res.status(404).json({
+                code: 404,
+                message: "Không tìm thấy đơn hàng"
+            });
+        }
+
+        res.json({
+            code: 200,
+            message: "Cập nhật trạng thái đơn hàng thành công",
+            data: order
+        });
+    } catch (error) {
+        console.error("Update Order Status Error:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Lỗi khi cập nhật trạng thái đơn hàng"
+        });
+    }
+};
