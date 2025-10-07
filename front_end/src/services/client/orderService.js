@@ -16,8 +16,8 @@ export const createOrderFromCart = async (client, paymentMethod) => {
     return res;
 };
 
-export const updateOrderStatus = async (id) => {
-    const result = await putAuth(`order/${id}`);
+export const updateOrderStatus = async (id,status) => {
+    const result = await putAuth(`order/${id}`, status);
     return result;
 };
 

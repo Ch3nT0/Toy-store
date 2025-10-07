@@ -8,7 +8,7 @@ export default function OrderList({ status }) {
 
     const fetchOrders = async () => {
         try {
-            const res = await getOrders(status);
+            const res = await getOrders(status,1);
             setOrders(res.data || []);
         } catch (err) {
             console.error("Lỗi load đơn hàng:", err);
@@ -91,7 +91,7 @@ export default function OrderList({ status }) {
                                     </Link>
 
                                     {/* Button cập nhật trạng thái */}
-                                    {order.status !== "completed" && order.status !== "delivered"  && (
+                                    {order.status !== "completed" && order.status !== "delivered"   && order.status !== "cancelled" && (
                                         <button
                                             onClick={() => handleUpdateStatus(order._id, order.status)}
                                             className="px-2 py-1 bg-green-500 text-white rounded"

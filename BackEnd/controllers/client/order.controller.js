@@ -160,7 +160,7 @@ module.exports.orderCart = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const status = "completed";
+        const status = req.body.status;
         // Tạo object cập nhật
         const updateData = { status };
         updateData.paidAt = new Date();

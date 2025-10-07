@@ -1,7 +1,7 @@
 const Product = require("../../models/product.model");
 const Order = require("../../models/order.model");
 const Cart = require("../../models/cart.model")
-
+const paginationHelper = require("../../helpers/pagination")
 //[GET] /order/user/:id
 exports.getOrdersByUser = async (req, res) => {
     try {
@@ -56,11 +56,31 @@ exports.deleteOrderByID = async (req, res) => {
     }
 }
 
-// [GET] /order?status=
+// [GET] /order?status=?page=1&limit=10
 exports.getOrders = async (req, res) => {
     try {
+        const query = req.query;
         const { status } = req.query;
-        const orders = await Order.find({status: status});
+
+        const count = await Order.countDocuments();
+        const paging = paginationHelper({ currentPage: 1, limitItem: 10 }, query, count);
+        const orders = await Order
+            .find({ status: status })
+            .skip(paging.skip)
+            .limit(paging.limitItem);
+        if (!status) {
+            const orders = await Order
+                .find()
+                .skip(paging.skip)
+                .limit(paging.limitItem);
+            return res.json({
+                code: 200,
+                message: "Thành công",
+                currentPage: paging.currentPage,
+                totalPage: paging.totalPage,
+                data: orders
+            });
+        }
         if (!orders || orders.length === 0) {
             return res.status(404).json({ message: "No orders found" });
         }
@@ -83,7 +103,7 @@ exports.getOrders = async (req, res) => {
 exports.getRevenueLast6Months = async (req, res) => {
     try {
         const sixMonthsAgo = new Date();
-        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
         const revenue = await Order.aggregate([
             {
                 $match: {

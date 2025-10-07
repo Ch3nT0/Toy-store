@@ -30,14 +30,14 @@ function Profile() {
         }));
     };
 
-    // xử lý xác nhận đã nhận hàng
+    // ✅ Xử lý xác nhận đã nhận hàng
     const handleConfirmReceived = async (orderId) => {
         const confirm = window.confirm("Bạn đã chắc chắn nhận được hàng?");
         if (!confirm) return;
 
         try {
-            const result = await updateOrderStatus(orderId);
-            alert(result.message);
+            const result = await updateOrderStatus(orderId, { status: "completed" });
+            alert(result.message || "Xác nhận thành công!");
             setOrders((prev) =>
                 prev.map((o) =>
                     o._id === orderId ? { ...o, status: "completed" } : o
@@ -46,6 +46,24 @@ function Profile() {
         } catch (error) {
             console.error("Error confirm received:", error);
             alert("Có lỗi xảy ra khi xác nhận đơn hàng.");
+        }
+    };
+
+    const handleCancelOrder = async (orderId) => {
+        const confirm = window.confirm("Bạn có chắc chắn muốn hủy đơn hàng này?");
+        if (!confirm) return;
+
+        try {
+            const result = await updateOrderStatus(orderId, { status: "cancelled" });
+            alert(result.message || "Đơn hàng đã được hủy.");
+            setOrders((prev) =>
+                prev.map((o) =>
+                    o._id === orderId ? { ...o, status: "cancelled" } : o
+                )
+            );
+        } catch (error) {
+            console.error("Error cancel order:", error);
+            alert("Có lỗi xảy ra khi hủy đơn.");
         }
     };
 
@@ -76,7 +94,6 @@ function Profile() {
                             <p><strong>Thanh toán:</strong> {order.paymentMethod}</p>
                             <p><strong>Tổng tiền:</strong> {order.totalPrice} VND</p>
 
-                            {/* Nút xác nhận nhận hàng khi trạng thái là delivered */}
                             {order.status === "delivered" && (
                                 <button
                                     onClick={() => handleConfirmReceived(order._id)}
@@ -86,6 +103,16 @@ function Profile() {
                                 </button>
                             )}
 
+                            {(order.status === "pending" || order.status === "processing") && (
+                                <button
+                                    onClick={() => handleCancelOrder(order._id)}
+                                    className="mt-3 ml-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                                >
+                                    Hủy đơn
+                                </button>
+                            )}
+
+                            {/* Nút xem chi tiết */}
                             <button
                                 onClick={() => toggleDetail(order._id)}
                                 className="mt-2 ml-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -102,7 +129,7 @@ function Profile() {
                                     <h3 className="font-semibold mt-3">Sản phẩm:</h3>
                                     <ul className="list-disc ml-6">
                                         {order.products.map((p, idx) => (
-                                            <li key={idx}>
+                                            <li key={idx} className="mb-2">
                                                 <p><strong>Sản phẩm ID:</strong> {p.productId}</p>
                                                 <p>Số lượng: {p.quantity}</p>
                                                 <p>Giá: {p.price} VND</p>
