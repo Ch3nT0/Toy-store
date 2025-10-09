@@ -26,6 +26,11 @@ export const updateProduct = async (id,product) => {
     return result;
 }
 
+export const updateManyProducts = async (data) => {
+    const result = await putAuth(`/products/update-many`,data);
+    return result;
+}
+
 export const createProduct  = async (product) => {
     const result = await postAuth(`/products`,product);
     return result;

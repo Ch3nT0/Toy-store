@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { getProduct } from "../../../services/client/productService";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { deleteProduct } from "../../../services/admin/productService";
+import { deleteProduct, updateManyProducts } from "../../../services/admin/productService";
 
 function ProductAdmin() {
     const [products, setProducts] = useState([]);
     const [totalPage, setTotalPage] = useState(1);
+    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [newPrice, setNewPrice] = useState("");
+    const [newDiscount, setNewDiscount] = useState("");
+    const [searchKeyword, setSearchKeyword] = useState("");
 
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -13,6 +17,7 @@ function ProductAdmin() {
     const keyword = searchParams.get("keyword") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
 
+    // Lấy danh sách sản phẩm
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -24,18 +29,63 @@ function ProductAdmin() {
             }
         };
         fetchProducts();
+        setSearchKeyword(keyword); // giữ lại từ khóa khi chuyển trang
     }, [page, keyword]);
 
-    const handlePageChange = (newPage) => {
-        if (newPage >= 1 && newPage <= totalPage) {
-            setSearchParams({ keyword, page: newPage });
+    // Chọn sản phẩm
+    const handleSelectProduct = (id) => {
+        setSelectedProducts((prev) =>
+            prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
+        );
+    };
+
+    const handleSelectAll = () => {
+        if (selectedProducts.length === products.length) {
+            setSelectedProducts([]);
+        } else {
+            setSelectedProducts(products.map((p) => p._id));
         }
     };
 
+    // Cập nhật nhiều sản phẩm
+    const handleBulkUpdate = async () => {
+        if (selectedProducts.length === 0) {
+            alert("Vui lòng chọn ít nhất một sản phẩm để cập nhật!");
+            return;
+        }
+
+        if (!newPrice && !newDiscount) {
+            alert("Vui lòng nhập giá mới hoặc giảm giá mới!");
+            return;
+        }
+
+        const updates = selectedProducts.map((id) => ({
+            id,
+            ...(newPrice && { price: parseFloat(newPrice) }),
+            ...(newDiscount && { discount: parseFloat(newDiscount) }),
+        }));
+
+        try {
+            const res = await updateManyProducts(updates);
+            alert(res.message);
+
+            const refreshed = await getProduct(page, 10, keyword);
+            setProducts(refreshed.data);
+            setSelectedProducts([]);
+            setNewPrice("");
+            setNewDiscount("");
+        } catch (error) {
+            console.error("Bulk update error:", error);
+            alert("Có lỗi xảy ra khi cập nhật!");
+        }
+    };
+
+    // Sửa sản phẩm
     const handleEdit = (id) => {
         navigate(`/admin/products/edit/${id}`);
     };
 
+    // Xóa sản phẩm
     const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
             try {
@@ -46,6 +96,24 @@ function ProductAdmin() {
             } catch (error) {
                 console.error("Delete error:", error);
             }
+        }
+    };
+
+    // Chuyển trang
+    const handlePageChange = (newPage) => {
+        if (newPage >= 1 && newPage <= totalPage) {
+            setSearchParams({ keyword, page: newPage });
+        }
+    };
+
+    // 🔍 Xử lý tìm kiếm sản phẩm
+    const handleSearch = () => {
+        setSearchParams({ keyword: searchKeyword, page: 1 });
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter") {
+            handleSearch();
         }
     };
 
@@ -61,6 +129,49 @@ function ProductAdmin() {
                 </button>
             </div>
 
+            {/* 🔍 Thanh tìm kiếm */}
+            <div className="flex items-center gap-3 mb-4">
+                <input
+                    type="text"
+                    placeholder="Nhập tên sản phẩm..."
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="border p-2 rounded w-80"
+                />
+                <button
+                    onClick={handleSearch}
+                    className="px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-800"
+                >
+                    Tìm kiếm
+                </button>
+            </div>
+
+            {/* Form cập nhật hàng loạt */}
+            <div className="flex items-center gap-3 mb-4">
+                <input
+                    type="number"
+                    placeholder="Giá mới"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="border p-2 rounded w-40"
+                />
+                <input
+                    type="number"
+                    placeholder="Giảm giá mới (%)"
+                    value={newDiscount}
+                    onChange={(e) => setNewDiscount(e.target.value)}
+                    className="border p-2 rounded w-40"
+                />
+                <button
+                    onClick={handleBulkUpdate}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700"
+                >
+                    Cập nhật hàng loạt
+                </button>
+            </div>
+
+            {/* Bảng sản phẩm */}
             {products.length === 0 ? (
                 <p className="text-center text-gray-600">Không có sản phẩm nào.</p>
             ) : (
@@ -68,6 +179,13 @@ function ProductAdmin() {
                     <table className="w-full border border-gray-200 rounded-xl overflow-hidden">
                         <thead className="bg-gray-100">
                             <tr>
+                                <th className="p-3 border text-center">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedProducts.length === products.length}
+                                        onChange={handleSelectAll}
+                                    />
+                                </th>
                                 <th className="p-3 border">Ảnh</th>
                                 <th className="p-3 border">Tên</th>
                                 <th className="p-3 border">Giá</th>
@@ -78,6 +196,13 @@ function ProductAdmin() {
                         <tbody>
                             {products.map((product) => (
                                 <tr key={product._id} className="hover:bg-gray-50">
+                                    <td className="p-3 border text-center">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedProducts.includes(product._id)}
+                                            onChange={() => handleSelectProduct(product._id)}
+                                        />
+                                    </td>
                                     <td className="p-3 border">
                                         <img
                                             src={product.images}

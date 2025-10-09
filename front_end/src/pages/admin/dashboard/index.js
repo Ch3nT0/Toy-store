@@ -74,7 +74,7 @@ function DashboardAdmin() {
                 ))}
             </div>
 
-            {/* Biểu đồ doanh thu */}
+
             <div className="bg-white shadow-md rounded-xl p-6">
                 <h3 className="text-lg font-semibold mb-4">Doanh thu 6 tháng gần đây</h3>
                 <ResponsiveContainer width="100%" height={300}>

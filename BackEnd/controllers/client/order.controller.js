@@ -1,6 +1,7 @@
 const Product = require("../../models/product.model");
 const Order = require("../../models/order.model");
 const Cart = require("../../models/cart.model")
+const sendMailHelper = require("../../helpers/sendMail");
 
 //[GET] /order
 exports.getOrdersByUser = async (req, res) => {
@@ -43,11 +44,11 @@ exports.getOrderByID = async (req, res) => {
 module.exports.orderProduct = async (req, res) => {
     try {
         const userId = req.user._id;
-        const { client,product,paymentMethod,quantity } = req.body;
+        const { client, product, paymentMethod, quantity } = req.body;
         if (!product) {
             return res.status(404).json({ message: "Sản phẩm không tồn tại" });
         }
-        const discountAll = 0; 
+        const discountAll = 0;
         const discount = product.discount || 0;
         const price = product.price;
         const totalPriceProduct = (price - discount) * quantity;
@@ -119,7 +120,7 @@ module.exports.orderCart = async (req, res) => {
                     ...item.toObject(),
                     price,
                     discount: discountValue,
-                    totalPrice: itemTotal  
+                    totalPrice: itemTotal
                 };
             })
         );
@@ -136,7 +137,7 @@ module.exports.orderCart = async (req, res) => {
             },
             products: updatedProducts,
             discount: discount || 0,
-            totalPrice: finalOrderTotal,  
+            totalPrice: finalOrderTotal,
             paymentMethod,
             status: "pending"
         });
@@ -144,6 +145,9 @@ module.exports.orderCart = async (req, res) => {
 
         await newOrder.save();
         await Cart.deleteOne({ userId });
+        const subject = "Đặt hàng thành công";
+        const html = `Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <b>${newOrder._id}</b>. Tổng tiền: <b>${finalOrderTotal.toFixed(2)} VND</b>.`;
+        sendMailHelper.senMail(req.user.email, subject, html);
         res.json({
             message: "Đặt hàng thành công",
             orderId: newOrder._id,

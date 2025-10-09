@@ -75,6 +75,31 @@ module.exports.updateProduct = async (req, res) => {
     }
 }
 
+// [PUT] [ADMIN]/products/update-many
+module.exports.updateManyProducts = async (req, res) => {
+    const updates = req.body;
+    try {
+        await Promise.all(updates.map(async (item) => {
+            const { id, ...updateData } = item;
+            const result = await Product.findOneAndUpdate(
+                { _id: id },
+                updateData,
+                { new: true }
+            );
+        }));
+        res.json({
+            code: 200,
+            message: `Cập nhật thành công `,
+        });
+    } catch (error) {
+        res.json({
+            code: 500,
+            message: "Lỗi máy chủ khi cập nhật nhiều sản phẩm.",
+            error: error.message
+        });
+    }
+}
+
 //[DELETE] [ADMIN]/products/:id
 module.exports.deleteProduct = async (req, res) => {
     const id = req.params.id;
