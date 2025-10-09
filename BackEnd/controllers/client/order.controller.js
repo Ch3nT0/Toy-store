@@ -72,7 +72,9 @@ module.exports.orderProduct = async (req, res) => {
         });
 
         await newOrder.save();
-
+        const subject = "Đặt hàng thành công";
+        const html = `Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <b>${newOrder._id}</b>. Tổng tiền: <b>${totalPriceProduct.toFixed(2)} VND</b>.`;
+        sendMailHelper.senMail(req.user.email, subject, html);
         res.status(201).json({
             message: "Đặt hàng thành công",
             orderId: newOrder._id,

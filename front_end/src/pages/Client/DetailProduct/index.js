@@ -54,11 +54,11 @@ function DetailProduct() {
 
                     <div className="flex items-center mt-4">
                         <span className="text-red-500 text-2xl font-semibold">
-                            {product.price.toLocaleString()}₫
+                            {(product.price * (1 - product.discount / 100)).toLocaleString()}₫
                         </span>
                         {product.discount > 0 && (
                             <span className="ml-3 text-gray-400 line-through">
-                                {(product.price / (1 - product.discount / 100)).toLocaleString()}₫
+                            {product.price.toLocaleString()}₫
                             </span>
                         )}
                     </div>

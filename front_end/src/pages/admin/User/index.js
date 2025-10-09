@@ -39,8 +39,8 @@ function UserAdmin() {
                 <tbody>
                     {users.map((u) => (
                         <tr key={u.id} className="hover:bg-gray-100">
-                            <td className="border border-gray-300 p-2">{u.id}</td>
-                            <td className="border border-gray-300 p-2">{u.name}</td>
+                            <td className="border border-gray-300 p-2">{u._id}</td>
+                            <td className="border border-gray-300 p-2">{u.fullName}</td>
                             <td className="border border-gray-300 p-2">{u.email}</td>
                             <td className="border border-gray-300 p-2 text-center">
                                 <button className="bg-blue-500 text-white px-3 py-1 rounded mr-2">

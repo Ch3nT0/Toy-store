@@ -75,7 +75,7 @@ function Profile() {
             {/* Thông tin user */}
             <div className="mb-6 p-4 border rounded-lg shadow">
                 <h2 className="text-xl font-bold mb-2">Thông tin người dùng</h2>
-                <p><strong>Tên:</strong> {user.name}</p>
+                <p><strong>Tên:</strong> {user.fullName}</p>
                 <p><strong>Email:</strong> {user.email}</p>
             </div>
 

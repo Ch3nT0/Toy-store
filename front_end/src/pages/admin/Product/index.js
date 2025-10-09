@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getProduct } from "../../../services/client/productService";
+import { getProduct } from "../../../services/admin/productService";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { deleteProduct, updateManyProducts } from "../../../services/admin/productService";
 
@@ -11,17 +11,25 @@ function ProductAdmin() {
     const [newDiscount, setNewDiscount] = useState("");
     const [searchKeyword, setSearchKeyword] = useState("");
 
+    // bộ lọc giá và giảm giá
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [filterDiscount, setFilterDiscount] = useState("");
+
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
 
     const keyword = searchParams.get("keyword") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
+    const queryMin = searchParams.get("minPrice") || "";
+    const queryMax = searchParams.get("maxPrice") || "";
+    const queryDiscount = searchParams.get("discount") || "";
 
     // Lấy danh sách sản phẩm
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await getProduct(page, 10, keyword);
+                const res = await getProduct(page, 10, keyword, queryMin, queryMax, queryDiscount);
                 setProducts(res.data);
                 setTotalPage(res.totalPage);
             } catch (error) {
@@ -29,8 +37,11 @@ function ProductAdmin() {
             }
         };
         fetchProducts();
-        setSearchKeyword(keyword); // giữ lại từ khóa khi chuyển trang
-    }, [page, keyword]);
+        setSearchKeyword(keyword);
+        setMinPrice(queryMin);
+        setMaxPrice(queryMax);
+        setFilterDiscount(queryDiscount);
+    }, [page, keyword, queryMin, queryMax, queryDiscount]);
 
     // Chọn sản phẩm
     const handleSelectProduct = (id) => {
@@ -47,7 +58,7 @@ function ProductAdmin() {
         }
     };
 
-    // Cập nhật nhiều sản phẩm
+    // Cập nhật hàng loạt
     const handleBulkUpdate = async () => {
         if (selectedProducts.length === 0) {
             alert("Vui lòng chọn ít nhất một sản phẩm để cập nhật!");
@@ -69,7 +80,7 @@ function ProductAdmin() {
             const res = await updateManyProducts(updates);
             alert(res.message);
 
-            const refreshed = await getProduct(page, 10, keyword);
+            const refreshed = await getProduct(page, 10, keyword, minPrice, maxPrice, filterDiscount);
             setProducts(refreshed.data);
             setSelectedProducts([]);
             setNewPrice("");
@@ -80,18 +91,14 @@ function ProductAdmin() {
         }
     };
 
-    // Sửa sản phẩm
-    const handleEdit = (id) => {
-        navigate(`/admin/products/edit/${id}`);
-    };
-
-    // Xóa sản phẩm
+    // ✅ Sửa & Xóa sản phẩm
+    const handleEdit = (id) => navigate(`/admin/products/edit/${id}`);
     const handleDelete = async (id) => {
         if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
             try {
                 const data = await deleteProduct(id);
                 alert(data.message);
-                const res = await getProduct(page, 10, keyword);
+                const res = await getProduct(page, 10, keyword, minPrice, maxPrice, filterDiscount);
                 setProducts(res.data);
             } catch (error) {
                 console.error("Delete error:", error);
@@ -99,26 +106,37 @@ function ProductAdmin() {
         }
     };
 
-    // Chuyển trang
+    // ✅ Phân trang
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPage) {
-            setSearchParams({ keyword, page: newPage });
+            setSearchParams({
+                keyword,
+                page: newPage,
+                minPrice,
+                maxPrice,
+                discount: filterDiscount,
+            });
         }
     };
 
-    // 🔍 Xử lý tìm kiếm sản phẩm
+    // ✅ Tìm kiếm & Lọc
     const handleSearch = () => {
-        setSearchParams({ keyword: searchKeyword, page: 1 });
+        setSearchParams({
+            keyword: searchKeyword,
+            page: 1,
+            minPrice,
+            maxPrice,
+            discount: filterDiscount,
+        });
     };
 
     const handleKeyPress = (e) => {
-        if (e.key === "Enter") {
-            handleSearch();
-        }
+        if (e.key === "Enter") handleSearch();
     };
 
     return (
         <section className="max-w-6xl mx-auto">
+            {/* Tiêu đề */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Quản lý sản phẩm</h2>
                 <button
@@ -129,21 +147,42 @@ function ProductAdmin() {
                 </button>
             </div>
 
-            {/* 🔍 Thanh tìm kiếm */}
-            <div className="flex items-center gap-3 mb-4">
+            {/* 🔍 Thanh tìm kiếm + lọc */}
+            <div className="flex flex-wrap items-center gap-3 mb-4">
                 <input
                     type="text"
                     placeholder="Nhập tên sản phẩm..."
                     value={searchKeyword}
                     onChange={(e) => setSearchKeyword(e.target.value)}
                     onKeyDown={handleKeyPress}
-                    className="border p-2 rounded w-80"
+                    className="border p-2 rounded w-64"
+                />
+                <input
+                    type="number"
+                    placeholder="Giá từ..."
+                    value={minPrice}
+                    onChange={(e) => setMinPrice(e.target.value)}
+                    className="border p-2 rounded w-28"
+                />
+                <input
+                    type="number"
+                    placeholder="Đến..."
+                    value={maxPrice}
+                    onChange={(e) => setMaxPrice(e.target.value)}
+                    className="border p-2 rounded w-28"
+                />
+                <input
+                    type="number"
+                    placeholder="Giảm giá (%)"
+                    value={filterDiscount}
+                    onChange={(e) => setFilterDiscount(e.target.value)}
+                    className="border p-2 rounded w-32"
                 />
                 <button
                     onClick={handleSearch}
                     className="px-4 py-2 bg-gray-700 text-white rounded-xl hover:bg-gray-800"
                 >
-                    Tìm kiếm
+                    Lọc / Tìm kiếm
                 </button>
             </div>
 

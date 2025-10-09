@@ -6,6 +6,9 @@ import { updateCart } from "../../../services/client/cartService";
 function Product() {
     const [products, setProducts] = useState([]);
     const [totalPage, setTotalPage] = useState(1);
+    const [minPrice, setMinPrice] = useState("");
+    const [maxPrice, setMaxPrice] = useState("");
+    const [discount, setDiscount] = useState("");
 
     const navigate = useNavigate();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -13,10 +16,11 @@ function Product() {
     const keyword = searchParams.get("keyword") || "";
     const page = parseInt(searchParams.get("page") || "1", 10);
 
+    // ✅ Gọi API mỗi khi page, keyword, minPrice, maxPrice, discount thay đổi
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await getProduct(page, 8, keyword);
+                const res = await getProduct(page, 8, keyword, minPrice, maxPrice, discount);
                 setProducts(res.data);
                 setTotalPage(res.totalPage);
             } catch (error) {
@@ -24,7 +28,7 @@ function Product() {
             }
         };
         fetchProducts();
-    }, [page, keyword]);
+    }, [page, keyword, minPrice, maxPrice, discount]);
 
     const handleClick = (id) => {
         navigate(`/product/${id}`);
@@ -32,7 +36,6 @@ function Product() {
 
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPage) {
-            // Cập nhật query param page
             setSearchParams({ keyword, page: newPage });
         }
     };
@@ -48,11 +51,60 @@ function Product() {
 
     return (
         <section className="max-w-6xl mx-auto">
+            {/* --- Bộ lọc tự động --- */}
+            <div className="flex flex-wrap items-end gap-4 bg-gray-50 p-4 rounded-xl mb-6 shadow">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Giá từ</label>
+                    <input
+                        type="number"
+                        value={minPrice}
+                        onChange={(e) => {
+                            setMinPrice(e.target.value);
+                            setSearchParams({ keyword, page: 1 }); // reset về trang 1
+                        }}
+                        placeholder="0"
+                        className="border rounded-lg px-3 py-2 w-32"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Đến</label>
+                    <input
+                        type="number"
+                        value={maxPrice}
+                        onChange={(e) => {
+                            setMaxPrice(e.target.value);
+                            setSearchParams({ keyword, page: 1 });
+                        }}
+                        placeholder="1000000"
+                        className="border rounded-lg px-3 py-2 w-32"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700">Giảm giá (%)</label>
+                    <select
+                        value={discount}
+                        onChange={(e) => {
+                            setDiscount(e.target.value);
+                            setSearchParams({ keyword, page: 1 });
+                        }}
+                        className="border rounded-lg px-3 py-2 w-40"
+                    >
+                        <option value="">Tất cả</option>
+                        <option value="10">Từ 10%</option>
+                        <option value="20">Từ 20%</option>
+                        <option value="30">Từ 30%</option>
+                        <option value="50">Từ 50%</option>
+                    </select>
+                </div>
+            </div>
+
+            {/* --- Danh sách sản phẩm --- */}
             {products.length === 0 ? (
                 <p className="text-center text-gray-600">Không tìm thấy sản phẩm phù hợp.</p>
             ) : (
                 <>
-                    {/* List sản phẩm */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
                         {products.map((product) => (
                             <div
@@ -108,7 +160,6 @@ function Product() {
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 navigate(`/product/payment/${product._id}`);
-
                                             }}
                                         >
                                             Mua ngay
@@ -119,7 +170,7 @@ function Product() {
                         ))}
                     </div>
 
-                    {/* Pagination */}
+                    {/* --- Phân trang --- */}
                     <div className="flex justify-center items-center mt-8 gap-2">
                         <button
                             onClick={() => handlePageChange(page - 1)}

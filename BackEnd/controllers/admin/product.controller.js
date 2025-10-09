@@ -3,23 +3,52 @@ const paginationHelper = require("../../helpers/pagination")
 const searchHelper = require("../../helpers/search")
 const Review = require("../../models/review.model");
 
-// [GET] [ADMIN]/products?page=__&limit=__&keyword=__&&minPrice=__&maxPrice=__
+// [GET] [ADMIN]/products?page=__&limit=__&keyword=__&&minPrice=__&maxPrice=__&discount=__
 module.exports.getProducts = async (req, res) => {
-    const query = req.query;
-    const search = searchHelper(req.query);
-    const count = await Product.countDocuments();
-    const paging = paginationHelper({ currentPage: 1, limitItem: 10 }, query, count);
-    const product = await Product.find(search)
-        .select("name price discount images rating reviewCount")
-        .skip(paging.skip)
-        .limit(paging.limitItem);
-    res.json({
-        code: 200,
-        message: "Thành công",
-        currentPage: paging.currentPage,
-        totalPage: paging.totalPage,
-        data: product
-    });
+    try {
+        const query = req.query;
+        const search = searchHelper(req.query);
+        // --- Lọc theo giá ---
+        const filter = { ...search };
+        if (query.minPrice || query.maxPrice) {
+            filter.price = {};
+            if (query.minPrice) filter.price.$gte = parseFloat(query.minPrice);
+            if (query.maxPrice) filter.price.$lte = parseFloat(query.maxPrice);
+        }
+        // --- Lọc theo giảm giá (discount) ---
+        if (query.discount) {
+            filter.discount = { $gte: parseFloat(query.discount) };
+        }
+        // --- Đếm tổng số sản phẩm theo điều kiện ---
+        const count = await Product.countDocuments(filter);
+        // --- Tạo thông tin phân trang ---
+        const paging = paginationHelper(
+            { currentPage: 1, limitItem: 10 },
+            query,
+            count
+        );
+        // --- Truy vấn sản phẩm ---
+        const products = await Product.find(filter)
+            .select("name price discount images rating reviewCount")
+            .skip(paging.skip)
+            .limit(paging.limitItem)
+            .sort({ createdAt: -1 }); 
+        // --- Trả về ---
+        res.json({
+            code: 200,
+            message: "Thành công",
+            currentPage: paging.currentPage,
+            totalPage: paging.totalPage,
+            data: products
+        });
+    } catch (error) {
+        console.error("Get products error:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Lỗi máy chủ khi lấy danh sách sản phẩm",
+            error: error.message
+        });
+    }
 };
 
 // [GET] [ADMIN]/products/:id
