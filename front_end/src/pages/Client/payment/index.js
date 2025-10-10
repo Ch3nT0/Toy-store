@@ -79,7 +79,7 @@ function Payment() {
             alert("Có lỗi xảy ra, vui lòng thử lại!");
         }
     };
-
+    console.log({ product });
     return (
         <div className="max-w-4xl mx-auto p-6">
             <h2 className="text-2xl font-bold mb-6 text-center">Thanh toán sản phẩm</h2>
@@ -88,7 +88,7 @@ function Payment() {
             {product && (
                 <div className="flex gap-6 bg-white shadow rounded-2xl p-4 mb-8">
                     <img
-                        src={product.images?.[0]}
+                        src={product.images}
                         alt={product.name}
                         className="w-40 h-40 object-cover rounded-lg"
                     />

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { getUserByID } from "../../../services/client/userService";
 import { getOrderByID, updateOrderStatus } from "../../../services/client/orderService";
+import { getProductByID } from "../../../services/client/productService";
 
 function Profile() {
     const [user, setUser] = useState(null);
     const [orders, setOrders] = useState([]);
     const [openDetails, setOpenDetails] = useState({});
+    const [productDetails, setProductDetails] = useState({});
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -23,14 +25,33 @@ function Profile() {
         fetchOrders();
     }, []);
 
-    const toggleDetail = (id) => {
+    const fetchProductDetail = async (productId) => {
+        if (productDetails[productId]) return; // đã có thì không tải lại
+        try {
+            const res = await getProductByID(productId);
+            setProductDetails((prev) => ({
+                ...prev,
+                [productId]: res.data,
+            }));
+        } catch (error) {
+            console.error("Lỗi lấy thông tin sản phẩm:", error);
+        }
+    };
+
+    const toggleDetail = async (id, products) => {
         setOpenDetails((prev) => ({
             ...prev,
             [id]: !prev[id],
         }));
+
+        // Khi mở chi tiết => tải thông tin sản phẩm
+        if (!openDetails[id]) {
+            for (const p of products) {
+                await fetchProductDetail(p.productId);
+            }
+        }
     };
 
-    // ✅ Xử lý xác nhận đã nhận hàng
     const handleConfirmReceived = async (orderId) => {
         const confirm = window.confirm("Bạn đã chắc chắn nhận được hàng?");
         if (!confirm) return;
@@ -86,7 +107,10 @@ function Profile() {
                     <p>Chưa có đơn hàng nào</p>
                 ) : (
                     orders.map((order) => (
-                        <div key={order._id} className="mb-6 p-4 border rounded-lg shadow">
+                        <div
+                            key={order._id}
+                            className="mb-6 p-4 border rounded-lg shadow relative"
+                        >
                             <p><strong>Mã đơn hàng:</strong> {order._id}</p>
                             <p><strong>Trạng thái:</strong>
                                 <span className="ml-2 px-2 py-1 rounded bg-gray-200">{order.status}</span>
@@ -94,31 +118,36 @@ function Profile() {
                             <p><strong>Thanh toán:</strong> {order.paymentMethod}</p>
                             <p><strong>Tổng tiền:</strong> {order.totalPrice} VND</p>
 
-                            {order.status === "delivered" && (
-                                <button
-                                    onClick={() => handleConfirmReceived(order._id)}
-                                    className="mt-3 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-                                >
-                                    Đã nhận hàng
-                                </button>
-                            )}
+                            {/* Nút ở dưới bên trái */}
+                            <div className="flex justify-between items-end mt-4">
+                                <div className="flex gap-3">
+                                    {order.status === "delivered" && (
+                                        <button
+                                            onClick={() => handleConfirmReceived(order._id)}
+                                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+                                        >
+                                            Đã nhận hàng
+                                        </button>
+                                    )}
 
-                            {(order.status === "pending" || order.status === "processing") && (
-                                <button
-                                    onClick={() => handleCancelOrder(order._id)}
-                                    className="mt-3 ml-3 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-                                >
-                                    Hủy đơn
-                                </button>
-                            )}
+                                    {(order.status === "pending" || order.status === "processing") && (
+                                        <button
+                                            onClick={() => handleCancelOrder(order._id)}
+                                            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                                        >
+                                            Hủy đơn
+                                        </button>
+                                    )}
+                                </div>
 
-                            {/* Nút xem chi tiết */}
-                            <button
-                                onClick={() => toggleDetail(order._id)}
-                                className="mt-2 ml-3 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                            >
-                                {openDetails[order._id] ? "Ẩn chi tiết" : "Xem chi tiết"}
-                            </button>
+                                {/* Nút xem chi tiết ở dưới bên phải */}
+                                <button
+                                    onClick={() => toggleDetail(order._id, order.products)}
+                                    className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                >
+                                    {openDetails[order._id] ? "Ẩn chi tiết" : "Xem chi tiết"}
+                                </button>
+                            </div>
 
                             {openDetails[order._id] && (
                                 <div className="mt-4 p-3 border rounded bg-gray-50">
@@ -126,17 +155,31 @@ function Profile() {
                                     <p><strong>Địa chỉ:</strong> {order.client.address}</p>
                                     <p><strong>SĐT:</strong> {order.client.phone}</p>
 
-                                    <h3 className="font-semibold mt-3">Sản phẩm:</h3>
-                                    <ul className="list-disc ml-6">
-                                        {order.products.map((p, idx) => (
-                                            <li key={idx} className="mb-2">
-                                                <p><strong>Sản phẩm ID:</strong> {p.productId}</p>
-                                                <p>Số lượng: {p.quantity}</p>
-                                                <p>Giá: {p.price} VND</p>
-                                                <p>Giảm giá: {p.discount}%</p>
-                                                <p><strong>Thành tiền:</strong> {p.totalPrice} VND</p>
-                                            </li>
-                                        ))}
+                                    <h3 className="font-semibold mt-3 mb-2">Sản phẩm:</h3>
+                                    <ul className="space-y-3">
+                                        {order.products.map((p, idx) => {
+                                            const product = productDetails[p.productId];
+                                            return (
+                                                <li key={idx} className="flex items-center gap-4 border-b pb-2">
+                                                    {product?.images && (
+                                                        <img
+                                                            src={product.images}
+                                                            alt={product.name}
+                                                            className="w-16 h-16 object-cover rounded"
+                                                        />
+                                                    )}
+                                                    <div>
+                                                        <p className="font-semibold text-gray-800">
+                                                            {product?.name || "Đang tải..."}
+                                                        </p>
+                                                        <p>Số lượng: {p.quantity}</p>
+                                                        <p>Giá: {p.price} VND</p>
+                                                        <p>Giảm giá: {p.discount}%</p>
+                                                        <p><strong>Thành tiền:</strong> {p.totalPrice} VND</p>
+                                                    </div>
+                                                </li>
+                                            );
+                                        })}
                                     </ul>
                                 </div>
                             )}

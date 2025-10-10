@@ -98,7 +98,7 @@ function CartPayment() {
                         >
                             <div className="flex items-center gap-4">
                                 <img
-                                    src={item.productId.images?.[0]}
+                                    src={item.productId.images}
                                     alt={item.productId.name}
                                     className="w-20 h-20 object-cover rounded"
                                 />

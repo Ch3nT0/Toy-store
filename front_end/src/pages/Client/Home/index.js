@@ -105,6 +105,7 @@ function Home() {
                         {topSaleProducts.map((product) => (
                             <div
                                 key={product._id}
+                                onClick={() => navigate(`/product/${product._id}`)} 
                                 className="min-w-[250px] bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
                             >
                                 {/* Ảnh sản phẩm */}
@@ -204,6 +205,7 @@ function Home() {
                         {topHotProducts.map((product) => (
                             <div
                                 key={product._id}
+                                onClick={() => navigate(`/product/${product._id}`)} 
                                 className="min-w-[250px] bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 flex flex-col"
                             >
                                 {/* Ảnh sản phẩm */}

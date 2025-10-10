@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { getCart, increaseQuantity, decreaseQuantity, removeFromCart } from "../../../services/client/cartService";
+import {
+    getCart,
+    increaseQuantity,
+    decreaseQuantity,
+    removeFromCart,
+} from "../../../services/client/cartService";
 import { useNavigate } from "react-router-dom";
 
 function Cart() {
@@ -24,11 +29,8 @@ function Cart() {
     const updateQuantity = async (productId, type) => {
         try {
             let res;
-            if (type === "increase") {
-                res = await increaseQuantity(productId);
-            } else {
-                res = await decreaseQuantity(productId);
-            }
+            if (type === "increase") res = await increaseQuantity(productId);
+            else res = await decreaseQuantity(productId);
             if (res.code === 200) setCart(res.products || []);
         } catch (error) {
             console.error("Lỗi khi cập nhật số lượng:", error);
@@ -56,29 +58,28 @@ function Cart() {
     );
 
     return (
-        <div className="cart-container" style={{ padding: "20px" }}>
-            <h2>Giỏ hàng</h2>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+                🛒 Giỏ hàng của bạn
+            </h2>
+
             {cart.length === 0 ? (
-                <p>Giỏ hàng trống</p>
+                <div className="text-center text-gray-600 text-lg mt-10">
+                    Giỏ hàng trống.
+                </div>
             ) : (
-                <>
-                    <table
-                        style={{
-                            width: "100%",
-                            borderCollapse: "collapse",
-                            textAlign: "center",
-                        }}
-                    >
-                        <thead style={{ background: "#f5f5f5" }}>
-                            <tr>
-                                <th style={{ width: "120px" }}>Hình ảnh</th>
-                                <th>Sản phẩm</th>
-                                <th style={{ width: "120px" }}>Giá gốc</th>
-                                <th style={{ width: "100px" }}>Giảm giá</th>
-                                <th style={{ width: "120px" }}>Giá sau giảm</th>
-                                <th style={{ width: "150px" }}>Số lượng</th>
-                                <th style={{ width: "120px" }}>Tổng</th>
-                                <th style={{ width: "80px" }}>Xoá</th>
+                <div className="bg-white rounded-2xl shadow-lg p-6">
+                    <table className="w-full border-collapse">
+                        <thead>
+                            <tr className="bg-gray-100 text-gray-700 text-sm uppercase">
+                                <th className="py-3 px-2">Hình ảnh</th>
+                                <th className="py-3 px-2">Sản phẩm</th>
+                                <th className="py-3 px-2">Giá gốc</th>
+                                <th className="py-3 px-2">Giảm giá</th>
+                                <th className="py-3 px-2">Giá sau giảm</th>
+                                <th className="py-3 px-2">Số lượng</th>
+                                <th className="py-3 px-2">Tổng</th>
+                                <th className="py-3 px-2">Xoá</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,36 +89,70 @@ function Cart() {
                                 const discountedPrice = getDiscountedPrice(item);
 
                                 return (
-                                    <tr key={item.productId._id} style={{ borderBottom: "1px solid #ddd" }}>
-                                        <td>
+                                    <tr
+                                        key={item.productId._id}
+                                        className="border-b hover:bg-gray-50 transition"
+                                    >
+                                        <td className="py-3 px-2">
                                             <img
                                                 src={item.productId.images}
                                                 alt={item.productId.name}
-                                                width="80"
+                                                className="w-20 h-20 object-cover rounded-xl mx-auto"
                                             />
                                         </td>
-                                        <td>{item.productId.name}</td>
-                                        <td>{originalPrice.toLocaleString()} đ</td>
-                                        <td>{discount > 0 ? `-${discount}%` : "0%"}</td>
-                                        <td>{discountedPrice.toLocaleString()} đ</td>
-                                        <td>
-                                            <button
-                                                onClick={() => updateQuantity(item.productId._id, "decrease")}
-                                                style={{ padding: "2px 8px", marginRight: "5px" }}
-                                            >
-                                                -
-                                            </button>
-                                            <span>{item.quantity}</span>
-                                            <button
-                                                onClick={() => updateQuantity(item.productId._id, "increase")}
-                                                style={{ padding: "2px 8px", marginLeft: "5px" }}
-                                            >
-                                                +
-                                            </button>
+                                        <td className="text-gray-800 font-semibold">
+                                            {item.productId.name}
                                         </td>
-                                        <td>{(discountedPrice * item.quantity).toLocaleString()} đ</td>
+                                        <td className="text-gray-500">
+                                            {originalPrice.toLocaleString()} đ
+                                        </td>
+                                        <td className="text-red-500 font-semibold">
+                                            {discount > 0 ? `-${discount}%` : "0%"}
+                                        </td>
+                                        <td className="text-green-600 font-bold">
+                                            {discountedPrice.toLocaleString()} đ
+                                        </td>
                                         <td>
-                                            <button onClick={() => removeItem(item.productId._id)}>Xoá</button>
+                                            <div className="flex items-center justify-center gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        updateQuantity(
+                                                            item.productId._id,
+                                                            "decrease"
+                                                        )
+                                                    }
+                                                    className="px-3 py-1 bg-gray-200 rounded-full hover:bg-gray-300 transition"
+                                                >
+                                                    -
+                                                </button>
+                                                <span className="text-gray-800 font-medium">
+                                                    {item.quantity}
+                                                </span>
+                                                <button
+                                                    onClick={() =>
+                                                        updateQuantity(
+                                                            item.productId._id,
+                                                            "increase"
+                                                        )
+                                                    }
+                                                    className="px-3 py-1 bg-gray-200 rounded-full hover:bg-gray-300 transition"
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
+                                        </td>
+                                        <td className="text-blue-600 font-bold">
+                                            {(discountedPrice * item.quantity).toLocaleString()} đ
+                                        </td>
+                                        <td>
+                                            <button
+                                                onClick={() =>
+                                                    removeItem(item.productId._id)
+                                                }
+                                                className="text-red-500 hover:text-red-700 font-semibold transition"
+                                            >
+                                                ✖
+                                            </button>
                                         </td>
                                     </tr>
                                 );
@@ -125,16 +160,23 @@ function Cart() {
                         </tbody>
                     </table>
 
-                    <h3 style={{ textAlign: "right", marginTop: "20px" }}>
-                        Tổng tiền: {total.toLocaleString()} đ
-                    </h3>
-                    <div style={{ textAlign: "right" }}>
-                        <button style={{ padding: "10px 20px", marginTop: "10px" }}
-                        onClick={() => navigate("/cart/payment")}>
-                            Thanh toán
-                        </button>
+                    <div className="flex justify-end mt-6">
+                        <div className="text-right">
+                            <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                                Tổng tiền:{" "}
+                                <span className="text-red-600">
+                                    {total.toLocaleString()} đ
+                                </span>
+                            </h3>
+                            <button
+                                onClick={() => navigate("/cart/payment")}
+                                className="px-6 py-3 bg-green-500 text-white font-semibold rounded-xl hover:bg-green-600 transition"
+                            >
+                                Thanh toán ngay
+                            </button>
+                        </div>
                     </div>
-                </>
+                </div>
             )}
         </div>
     );
