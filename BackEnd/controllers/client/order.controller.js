@@ -45,21 +45,31 @@ module.exports.orderProduct = async (req, res) => {
     try {
         const userId = req.user._id;
         const { client, product, paymentMethod, quantity } = req.body;
-        if (!product) {
-            return res.status(404).json({ message: "Sản phẩm không tồn tại" });
+        const existingProduct = await Product.findById(product._id);
+
+        if (!existingProduct) {
+            return res.status(404).json({ message: "Sản phẩm không tồn tại trong kho." });
         }
+        const requestedQuantity = parseInt(quantity);
+        if (requestedQuantity <= 0 || requestedQuantity > existingProduct.inStock) {
+            return res.status(400).json({ 
+                message: `Số lượng đặt hàng không hợp lệ. Chỉ còn **${existingProduct.inStock}** sản phẩm.` 
+            });
+        }
+
         const discountAll = 0;
-        const discount = product.discount || 0;
-        const price = product.price;
-        const totalPriceProduct = (price - discount) * quantity;
+        const discount = existingProduct.discount || 0;
+        const price = existingProduct.price;
+        
+        const totalPriceProduct = (price - discount) * requestedQuantity;
 
         const newOrder = new Order({
             userId: userId,
             client: client,
             products: [
                 {
-                    productId: product._id,
-                    quantity,
+                    productId: existingProduct._id,
+                    quantity: requestedQuantity,
                     price,
                     discount,
                     totalPrice: totalPriceProduct
@@ -71,15 +81,23 @@ module.exports.orderProduct = async (req, res) => {
             status: "pending"
         });
 
+        await Product.findByIdAndUpdate(
+            existingProduct._id,
+            { $inc: { inStock: -requestedQuantity } }, 
+            { new: true } 
+        );
         await newOrder.save();
+        
         const subject = "Đặt hàng thành công";
         const html = `Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <b>${newOrder._id}</b>. Tổng tiền: <b>${totalPriceProduct.toFixed(2)} VND</b>.`;
         sendMailHelper.senMail(req.user.email, subject, html);
+        
         res.status(201).json({
             message: "Đặt hàng thành công",
             orderId: newOrder._id,
             order: newOrder
         });
+        
     } catch (error) {
         console.error("Lỗi đặt hàng:", error);
         res.status(500).json({ message: "Lỗi server khi đặt hàng" });
@@ -94,32 +112,45 @@ module.exports.orderCart = async (req, res) => {
 
         // Tìm cart theo userId
         const cart = await Cart.findOne({ userId }).select("userId products");
-        if (!cart) {
+        if (!cart || cart.products.length === 0) {
             return res.status(400).json({
-                message: 'Không tìm thấy giỏ hàng',
+                message: 'Giỏ hàng trống hoặc không tồn tại.',
             });
         }
 
         const { products } = cart;
         let totalPriceProduct = 0;
-
-        // Cập nhật thông tin từng sản phẩm
+        const stockUpdates = [];
+        
         const updatedProducts = await Promise.all(
             products.map(async (item) => {
-                const product = await Product.findById(item.productId).select("price discount");
-                if (!product) {
-                    throw new Error(`Sản phẩm với ID ${item.productId} không tồn tại`);
+                const existingProduct = await Product.findById(item.productId).select("price discount inStock");
+                
+                if (!existingProduct) {
+                    throw new Error(`Sản phẩm (ID: ${item.productId}) không tồn tại trong kho.`);
                 }
+                
+                const requestedQuantity = parseInt(item.quantity);
+                                if (requestedQuantity <= 0 || requestedQuantity > existingProduct.inStock) {
+                    throw new Error(`Sản phẩm "${existingProduct.name || existingProduct._id}" chỉ còn **${existingProduct.inStock}** sản phẩm. Đặt hàng thất bại.`);
+                }
+                
+                stockUpdates.push({
+                    productId: existingProduct._id,
+                    quantityToSubtract: requestedQuantity
+                });
 
-                const price = product.price;
-                const discountValue = product.discount || 0;
-                const finalPrice = price * (1 - discountValue / 100);
-                const itemTotal = finalPrice * item.quantity;
+                const price = existingProduct.price;
+                const discountValue = existingProduct.discount || 0;
+                
+                const finalPrice = price * (1 - discountValue / 100); 
+                const itemTotal = finalPrice * requestedQuantity;
 
                 totalPriceProduct += itemTotal;
 
                 return {
-                    ...item.toObject(),
+                    productId: existingProduct._id, 
+                    quantity: requestedQuantity,
                     price,
                     discount: discountValue,
                     totalPrice: itemTotal
@@ -127,7 +158,13 @@ module.exports.orderCart = async (req, res) => {
             })
         );
 
-        // Áp dụng thêm discount toàn đơn (nếu có)
+        await Promise.all(stockUpdates.map(async (update) => {
+             await Product.findByIdAndUpdate(
+                update.productId,
+                { $inc: { inStock: -update.quantityToSubtract } } // Giảm inStock
+            );
+        }));
+
         const finalOrderTotal = totalPriceProduct * (1 - (discount || 0) / 100);
 
         const newOrder = new Order({
@@ -144,20 +181,23 @@ module.exports.orderCart = async (req, res) => {
             status: "pending"
         });
 
-
         await newOrder.save();
         await Cart.deleteOne({ userId });
+        
         const subject = "Đặt hàng thành công";
         const html = `Cảm ơn bạn đã đặt hàng. Mã đơn hàng của bạn là: <b>${newOrder._id}</b>. Tổng tiền: <b>${finalOrderTotal.toFixed(2)} VND</b>.`;
         sendMailHelper.senMail(req.user.email, subject, html);
-        res.json({
+        
+        res.status(201).json({
             message: "Đặt hàng thành công",
             orderId: newOrder._id,
             order: newOrder
         });
+        
     } catch (error) {
-        res.json({
-            message: 'Có lỗi xảy ra khi đặt hàng'
+        console.error("Lỗi đặt hàng từ giỏ:", error);
+        res.status(500).json({
+            message: error.message || 'Có lỗi xảy ra khi đặt hàng'
         });
     }
 };
@@ -166,30 +206,49 @@ module.exports.orderCart = async (req, res) => {
 exports.updateOrderStatus = async (req, res) => {
     try {
         const { id } = req.params;
-        const status = req.body.status;
-        // Tạo object cập nhật
-        const updateData = { status };
-        updateData.paidAt = new Date();
+        const newStatus = req.body.status;
+        const currentOrder = await Order.findById(id);
 
-        const order = await Order.findByIdAndUpdate(id, updateData, { new: true });
-
-        if (!order) {
+        if (!currentOrder) {
             return res.status(404).json({
                 code: 404,
                 message: "Không tìm thấy đơn hàng"
             });
         }
+        
+        const oldStatus = currentOrder.status;
+        const updateData = { status: newStatus };
+
+        if (oldStatus !== 'canceled' && newStatus === 'canceled') {
+            const stockRestorationPromises = currentOrder.products.map(productItem => {
+                const quantityToRestore = productItem.quantity;
+                return Product.findByIdAndUpdate(
+                    productItem.productId,
+                    { $inc: { inStock: quantityToRestore } } 
+                );
+            });
+            
+            await Promise.all(stockRestorationPromises);
+            console.log(`Khôi phục tồn kho thành công cho đơn hàng ID: ${id}`);
+        }
+        delete updateData.paidAt;
+
+        if (newStatus === 'completed' && !currentOrder.paidAt) { 
+             updateData.paidAt = new Date();
+        }
+        const updatedOrder = await Order.findByIdAndUpdate(id, updateData, { new: true });
 
         res.json({
             code: 200,
             message: "Cập nhật trạng thái đơn hàng thành công",
-            data: order
+            data: updatedOrder
         });
+        
     } catch (error) {
         console.error("Update Order Status Error:", error);
         res.status(500).json({
             code: 500,
-            message: "Lỗi khi cập nhật trạng thái đơn hàng"
+            message: "Lỗi server khi cập nhật trạng thái đơn hàng"
         });
     }
 };

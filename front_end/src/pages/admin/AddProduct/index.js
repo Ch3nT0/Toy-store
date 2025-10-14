@@ -18,6 +18,9 @@ function AddProduct() {
         name: "",
         price: "",
         discount: "",
+        description: "",
+        // THÊM TRƯỜNG CÒN HÀNG
+        inStock: "", 
         images: "",
         model3D: "",
     });
@@ -128,6 +131,32 @@ function AddProduct() {
                         className="w-full border rounded px-3 py-2"
                     />
                 </div>
+                
+                {/* Mô tả chi tiết */}
+                <div>
+                    <label className="block font-medium mb-1">Mô tả chi tiết</label>
+                    <textarea
+                        name="description"
+                        value={product.description}
+                        onChange={handleChange}
+                        rows="4"
+                        className="w-full border rounded px-3 py-2 resize-none"
+                    />
+                </div>
+                
+                {/* 🌟 CÒN HÀNG (IN STOCK) 🌟 */}
+                <div>
+                    <label className="block font-medium mb-1">Số lượng còn hàng</label>
+                    <input
+                        type="number"
+                        name="inStock"
+                        value={product.inStock}
+                        onChange={handleChange}
+                        className="w-full border rounded px-3 py-2"
+                        required
+                    />
+                </div>
+
 
                 {/* Ảnh sản phẩm (Tải file hoặc Gắn URL) */}
                 <div>
