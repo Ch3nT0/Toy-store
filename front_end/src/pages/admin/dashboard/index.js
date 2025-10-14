@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { getDash } from "../../../services/admin/dashboardService";
 import { useEffect, useState } from "react";
-import { getOrder6Months, getOrders } from "../../../services/admin/orderService";
+import { getNewestOrders, getOrder6Months } from "../../../services/admin/orderService";
 
 function DashboardAdmin() {
     const [chartData, setChartData] = useState([]);
@@ -21,6 +21,7 @@ function DashboardAdmin() {
         const fetchDash = async () => {
             try {
                 const res = await getDash();
+
                 setDash(res.data);
             } catch (error) {
                 console.error("Error fetching products:", error);
@@ -42,7 +43,7 @@ function DashboardAdmin() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await getOrders();
+                const res = await getNewestOrders();
                 setOrders(res.data || []);
                 console.log(res);
             } catch (error) {

@@ -1,5 +1,6 @@
 // UserAdmin.jsx
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { getListUser } from "../../../services/admin/userService";
 
 function UserAdmin() {
@@ -11,16 +12,11 @@ function UserAdmin() {
                 const res = await getListUser();
                 setUsers(res.data);
             } catch (error) {
-                console.error("Error fetching products:", error);
+                console.error("Error fetching users:", error);
             }
         };
         fetchListUser();
     }, []);
-
-    // Xóa user
-    const deleteUser = (id) => {
-        setUsers(users.filter((u) => u.id !== id));
-    };
 
     return (
         <div className="p-6">
@@ -38,30 +34,22 @@ function UserAdmin() {
                 </thead>
                 <tbody>
                     {users.map((u) => (
-                        <tr key={u.id} className="hover:bg-gray-100">
+                        <tr key={u._id} className="hover:bg-gray-100">
                             <td className="border border-gray-300 p-2">{u._id}</td>
                             <td className="border border-gray-300 p-2">{u.fullName}</td>
                             <td className="border border-gray-300 p-2">{u.email}</td>
                             <td className="border border-gray-300 p-2 text-center">
-                                <button className="bg-blue-500 text-white px-3 py-1 rounded mr-2">
-                                    Sửa
-                                </button>
-                                <button
-                                    onClick={() => deleteUser(u.id)}
-                                    className="bg-red-500 text-white px-3 py-1 rounded"
+                                <Link
+                                    to={`/admin/users/detail/${u._id}`}
+                                    className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
                                 >
-                                    Xóa
-                                </button>
+                                    Xem chi tiết
+                                </Link>
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
-
-            {/* Nút thêm user */}
-            <button className="mt-4 bg-green-500 text-white px-4 py-2 rounded">
-                + Thêm người dùng
-            </button>
         </div>
     );
 }

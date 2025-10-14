@@ -182,3 +182,21 @@ exports.updateOrderStatus = async (req, res) => {
         });
     }
 };
+
+// [GET] /order/order-newest
+exports.getNewestOrders = async (req, res) => {
+    try {
+        const orders = await Order.find().sort({ createdAt: -1 }).limit(5);
+        res.json({
+            code: 200,
+            message: "Lấy đơn hàng mới nhất thành công",
+            data: orders
+        });
+    } catch (error) {
+        console.error("Get Newest Orders Error:", error);
+        res.status(500).json({
+            code: 500,
+            message: "Lỗi khi lấy đơn hàng mới nhất"
+        });
+    }
+}

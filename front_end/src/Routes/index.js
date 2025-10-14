@@ -25,6 +25,7 @@ import OrderShipping from "../pages/admin/Order/OrderShipping";
 import OrderCompleted from "../pages/admin/Order/OrderCompleted";
 import OrderCancelled from "../pages/admin/Order/OrderCancelled";
 import OrderDelivered from "../pages/admin/Order/OrderDelivered";
+import UserOrder from "../pages/admin/User/UserOrder";
 
 const URL_ADMIN = '/admin'
 
@@ -113,6 +114,9 @@ export const routes = [
             {
                 path: 'users',
                 element: <UserAdmin />
+            },{
+                path: 'users/detail/:id',
+                element: <UserOrder />
             },
             {
                 path: 'orders/pending',

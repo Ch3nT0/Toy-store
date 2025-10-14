@@ -9,6 +9,11 @@ export const getOrders = async (status,page=1) => {
     return result;
 };
 
+export const getNewestOrders = async () => {
+    const result = await getAuth(`/order/order-newest`);
+    return result;
+}
+
 export const getOrderById = async (id) => {
     const result = await getAuth(`/order/${id}`);
     return result;
@@ -28,3 +33,8 @@ export const updateOrderStatus = async (id,status) => {
     const result = await putAuth(`/order/${id}/status`,{status});
     return result;
 };
+
+export const getOrdersByUser = async (id) => {
+    const result = await getAuth(`/order/user/${id}`);
+    return result;
+}
