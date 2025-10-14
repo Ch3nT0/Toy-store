@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createProduct } from "../../../services/admin/productService";
+import { handleUpload } from "../../../helpers/uploaFileToCloud";
+import '@google/model-viewer'; 
+
+// Hàm kiểm tra xem URL có phải là link file 3D thô (.glb, .gltf) không
+const isRawModelFile = (url) => {
+    if (!url) return false;
+    const lowerUrl = url.toLowerCase();
+    return lowerUrl.endsWith('.glb') || lowerUrl.endsWith('.gltf'); 
+};
 
 function AddProduct() {
     const navigate = useNavigate();
@@ -10,9 +19,47 @@ function AddProduct() {
         price: "",
         discount: "",
         images: "",
-        model3D: "", // ✅ thêm trường model3D
+        model3D: "",
     });
 
+    const [loading, setLoading] = useState(false);
+
+    /**
+     * @description Xử lý tải file (image/3d model) lên Cloudinary
+     */
+    const handleUploadFile = async (e, type) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setLoading(true);
+        setProduct((prev) => ({
+            ...prev,
+            [type === "3d" ? "model3D" : "images"]: "",
+        }));
+
+        try {
+            const secureUrl = await handleUpload(file, type);
+
+            if (secureUrl) {
+                setProduct((prev) => ({
+                    ...prev,
+                    [type === "3d" ? "model3D" : "images"]: secureUrl,
+                }));
+            } else {
+                alert("Tải lên file thất bại. Vui lòng kiểm tra console.");
+            }
+
+        } catch (err) {
+            alert(`Tải lên thất bại: ${err.message}`);
+            console.error("Component upload flow error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    /**
+     * @description Xử lý thay đổi input text (Bao gồm cả nhập URL thủ công)
+     */
     const handleChange = (e) => {
         const { name, value } = e.target;
         setProduct((prev) => ({
@@ -21,9 +68,16 @@ function AddProduct() {
         }));
     };
 
+    /**
+     * @description Xử lý gửi form (Tạo sản phẩm mới)
+     */
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
+            if (loading) {
+                 alert("Vui lòng chờ quá trình upload file hoàn tất.");
+                 return;
+            }
             const res = await createProduct(product);
             alert(res.message || "Thêm sản phẩm thành công!");
             navigate("/admin/products");
@@ -75,16 +129,27 @@ function AddProduct() {
                     />
                 </div>
 
-                {/* Ảnh sản phẩm */}
+                {/* Ảnh sản phẩm (Tải file hoặc Gắn URL) */}
                 <div>
-                    <label className="block font-medium mb-1">Ảnh (URL)</label>
+                    <label className="block font-medium mb-1">Ảnh sản phẩm</label>
                     <input
-                        type="text"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleUploadFile(e, "image")}
+                        className="w-full mb-2"
+                        disabled={loading}
+                    />
+                    <input
+                        type="url"
                         name="images"
                         value={product.images}
                         onChange={handleChange}
+                        placeholder="Hoặc nhập URL ảnh có sẵn..."
                         className="w-full border rounded px-3 py-2"
+                        disabled={loading}
                     />
+
+                    {loading && <p className="text-sm text-gray-500">Đang upload...</p>}
                     {product.images && (
                         <img
                             src={product.images}
@@ -94,27 +159,55 @@ function AddProduct() {
                     )}
                 </div>
 
-                {/* 🔹 Model 3D */}
+                {/* --- Model 3D (Phân biệt giữa file thô và link nhúng) --- */}
                 <div>
-                    <label className="block font-medium mb-1">Model 3D (Link nhúng)</label>
+                    <label className="block font-medium mb-1">Model 3D (.glb, .gltf...)</label>
                     <input
-                        type="text"
+                        type="file"
+                        accept=".glb,.gltf,.obj,.stl"
+                        onChange={(e) => handleUploadFile(e, "3d")}
+                        className="w-full mb-2"
+                        disabled={loading}
+                    />
+                    <input
+                        type="url"
                         name="model3D"
                         value={product.model3D}
                         onChange={handleChange}
+                        placeholder="Hoặc nhập URL Model 3D có sẵn..."
                         className="w-full border rounded px-3 py-2"
-                        placeholder="VD: https://sketchfab.com/models/xxxxx/embed"
+                        disabled={loading}
                     />
+
+                    {loading && <p className="text-sm text-gray-500">Đang upload...</p>}
+
                     {product.model3D && (
                         <div className="mt-3">
                             <p className="text-sm text-gray-500 mb-1">Xem trước mô hình 3D:</p>
-                            <iframe
-                                src={product.model3D}
-                                title="3D Model Preview"
-                                className="w-full h-80 rounded-lg border"
-                                allow="autoplay; fullscreen; vr"
-                                frameBorder="0"
-                            ></iframe>
+                            
+                            {/* Logic Phân biệt */}
+                            {isRawModelFile(product.model3D) ? (
+                                // CASE 1: File GLB/GLTF thô -> Dùng MODEL-VIEWER
+                                <model-viewer
+                                    src={product.model3D}
+                                    alt="Mô hình 3D sản phẩm"
+                                    camera-controls
+                                    auto-rotate
+                                    shadow
+                                    ar
+                                    style={{ width: '100%', height: '320px', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}
+                                >
+                                </model-viewer>
+                            ) : (
+                                // CASE 2: Link nhúng (ví dụ: Sketchfab embed) -> Dùng IFRAME đã sửa lỗi
+                                <iframe
+                                    src={product.model3D}
+                                    title="3D Model Preview"
+                                    className="w-full h-80 rounded-lg border"
+                                    allow="autoplay; fullscreen" 
+                                    frameBorder="0"
+                                ></iframe>
+                            )}
                         </div>
                     )}
                 </div>
@@ -131,6 +224,7 @@ function AddProduct() {
                     <button
                         type="submit"
                         className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+                        disabled={loading}
                     >
                         Thêm sản phẩm
                     </button>

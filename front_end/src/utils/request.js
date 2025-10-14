@@ -1,5 +1,5 @@
 import { getCookie } from '../helpers/cookie';
-const API_DOMAIN = "http://localhost:3001/";
+const API_DOMAIN = process.env.REACT_APP_API_DOMAIN;
 
 export const get = async (Path) => {
     const response = await fetch(`${API_DOMAIN}${Path}`)
