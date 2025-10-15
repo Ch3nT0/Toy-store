@@ -156,9 +156,8 @@ function EditProduct() {
                     />
                 </div>
                 
-                {/* 🌟 CÒN HÀNG (IN STOCK) 🌟 */}
                 <div>
-                    <label className="block font-medium mb-1">Số lượng còn hàng</label>
+                    <label className="block font-medium mb-1">Số lượng</label>
                     <input
                         type="number"
                         name="inStock"

@@ -22,7 +22,6 @@ exports.getOrdersByUser = async (req, res) => {
             message: "Error retrieving orders",
         })
     }
-
 }
 
 //[GET] order/:id
@@ -219,7 +218,7 @@ exports.updateOrderStatus = async (req, res) => {
         const oldStatus = currentOrder.status;
         const updateData = { status: newStatus };
 
-        if (oldStatus !== 'canceled' && newStatus === 'canceled') {
+        if (oldStatus !== 'cancelled' && newStatus === 'cancelled') {
             const stockRestorationPromises = currentOrder.products.map(productItem => {
                 const quantityToRestore = productItem.quantity;
                 return Product.findByIdAndUpdate(

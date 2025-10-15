@@ -10,6 +10,10 @@ function ProductAdmin() {
     const [newPrice, setNewPrice] = useState("");
     const [newDiscount, setNewDiscount] = useState("");
     const [searchKeyword, setSearchKeyword] = useState("");
+    
+    // --- State sắp xếp và lọc ---
+    const [sortBy, setSortBy] = useState(null); // Trường sắp xếp (VD: 'price', 'inStock')
+    const [sortOrder, setSortOrder] = useState('desc'); // Thứ tự ('asc' hoặc 'desc')
 
     // bộ lọc giá và giảm giá
     const [minPrice, setMinPrice] = useState("");
@@ -24,12 +28,26 @@ function ProductAdmin() {
     const queryMin = searchParams.get("minPrice") || "";
     const queryMax = searchParams.get("maxPrice") || "";
     const queryDiscount = searchParams.get("discount") || "";
+    
+    // Lấy tham số sắp xếp từ URL
+    const querySortBy = searchParams.get("sortBy") || "";
+    const querySortOrder = searchParams.get("sortOrder") || "";
+
 
     // Lấy danh sách sản phẩm
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const res = await getProduct(page, 10, keyword, queryMin, queryMax, queryDiscount);
+                const res = await getProduct(
+                    page, 
+                    10, 
+                    keyword, 
+                    queryMin, 
+                    queryMax, 
+                    queryDiscount,
+                    querySortBy, 
+                    querySortOrder
+                );
                 setProducts(res.data);
                 setTotalPage(res.totalPage);
             } catch (error) {
@@ -37,11 +55,16 @@ function ProductAdmin() {
             }
         };
         fetchProducts();
+        
+        // Cập nhật state cục bộ dựa trên URL
         setSearchKeyword(keyword);
         setMinPrice(queryMin);
         setMaxPrice(queryMax);
         setFilterDiscount(queryDiscount);
-    }, [page, keyword, queryMin, queryMax, queryDiscount]);
+        setSortBy(querySortBy);
+        setSortOrder(querySortOrder);
+        
+    }, [page, keyword, queryMin, queryMax, queryDiscount, querySortBy, querySortOrder]);
 
     // Chọn sản phẩm
     const handleSelectProduct = (id) => {
@@ -80,7 +103,16 @@ function ProductAdmin() {
             const res = await updateManyProducts(updates);
             alert(res.message);
 
-            const refreshed = await getProduct(page, 10, keyword, minPrice, maxPrice, filterDiscount);
+            const refreshed = await getProduct(
+                page, 
+                10, 
+                keyword, 
+                minPrice, 
+                maxPrice, 
+                filterDiscount,
+                sortBy, // Truyền tham số sắp xếp
+                sortOrder // Truyền tham số sắp xếp
+            );
             setProducts(refreshed.data);
             setSelectedProducts([]);
             setNewPrice("");
@@ -91,14 +123,14 @@ function ProductAdmin() {
         }
     };
 
-    // ✅ Sửa & Xóa sản phẩm
     const handleEdit = (id) => navigate(`/admin/products/edit/${id}`);
     const handleDelete = async (id) => {
+        // Thay thế window.confirm bằng modal UI tùy chỉnh trong môi trường sản xuất
         if (window.confirm("Bạn có chắc muốn xoá sản phẩm này?")) {
             try {
                 const data = await deleteProduct(id);
                 alert(data.message);
-                const res = await getProduct(page, 10, keyword, minPrice, maxPrice, filterDiscount);
+                const res = await getProduct(page, 10, keyword, minPrice, maxPrice, filterDiscount, sortBy, sortOrder);
                 setProducts(res.data);
             } catch (error) {
                 console.error("Delete error:", error);
@@ -106,7 +138,6 @@ function ProductAdmin() {
         }
     };
 
-    // ✅ Phân trang
     const handlePageChange = (newPage) => {
         if (newPage >= 1 && newPage <= totalPage) {
             setSearchParams({
@@ -115,11 +146,12 @@ function ProductAdmin() {
                 minPrice,
                 maxPrice,
                 discount: filterDiscount,
+                sortBy,
+                sortOrder,
             });
         }
     };
 
-    // ✅ Tìm kiếm & Lọc
     const handleSearch = () => {
         setSearchParams({
             keyword: searchKeyword,
@@ -127,16 +159,38 @@ function ProductAdmin() {
             minPrice,
             maxPrice,
             discount: filterDiscount,
+            sortBy, 
+            sortOrder, 
         });
     };
 
     const handleKeyPress = (e) => {
         if (e.key === "Enter") handleSearch();
     };
+    
+    const handleSort = (field) => {
+        const newSortOrder = sortBy === field && sortOrder === 'asc' ? 'desc' : 'asc';
+        
+        setSearchParams({
+            keyword,
+            page: 1,
+            minPrice,
+            maxPrice,
+            discount: filterDiscount,
+            sortBy: field,
+            sortOrder: newSortOrder,
+        });
+    };
+    
+    const getSortIcon = (field) => {
+        if (sortBy !== field) return null;
+        return sortOrder === 'asc' ? ' ▲' : ' ▼';
+    };
+
 
     return (
         <section className="max-w-6xl mx-auto">
-            {/* Tiêu đề */}
+            {/* Tiêu đề và nút Thêm */}
             <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Quản lý sản phẩm</h2>
                 <button
@@ -227,8 +281,14 @@ function ProductAdmin() {
                                 </th>
                                 <th className="p-3 border">Ảnh</th>
                                 <th className="p-3 border">Tên</th>
-                                <th className="p-3 border">Giá</th>
+                                <th className="p-3 border cursor-pointer hover:bg-gray-200" onClick={() => handleSort('price')}>
+                                    Giá {getSortIcon('price')}
+                                </th>
                                 <th className="p-3 border">Giảm giá</th>
+                                {/* 🌟 CỘT MỚI: TỒN KHO 🌟 */}
+                                <th className="p-3 border cursor-pointer hover:bg-gray-200" onClick={() => handleSort('inStock')}>
+                                    Còn lại {getSortIcon('inStock')}
+                                </th>
                                 <th className="p-3 border">Thao tác</th>
                             </tr>
                         </thead>
@@ -254,6 +314,9 @@ function ProductAdmin() {
                                         {product.price.toLocaleString()}₫
                                     </td>
                                     <td className="p-3 border">{product.discount}%</td>
+                                    <td className="p-3 border font-medium text-center">
+                                        {product.inStock}
+                                    </td>
                                     <td className="p-3 border space-x-2">
                                         <button
                                             onClick={() => handleEdit(product._id)}

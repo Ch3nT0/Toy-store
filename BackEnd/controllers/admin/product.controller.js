@@ -8,7 +8,7 @@ module.exports.getProducts = async (req, res) => {
     try {
         const query = req.query;
         const search = searchHelper(req.query);
-        // --- Lọc theo giá ---
+        // --- Lọc ---
         const filter = { ...search };
         if (query.minPrice || query.maxPrice) {
             filter.price = {};
@@ -19,21 +19,29 @@ module.exports.getProducts = async (req, res) => {
         if (query.discount) {
             filter.discount = { $gte: parseFloat(query.discount) };
         }
-        // --- Đếm tổng số sản phẩm theo điều kiện ---
+
+        let sortObject = { createdAt: -1 }; // Mặc định sắp xếp theo thời gian tạo mới nhất
+
+        if (query.sortBy && query.sortOrder) {
+            const field = query.sortBy; // Ví dụ: 'price', 'inStock'
+            const order = query.sortOrder === 'asc' ? 1 : -1; // 1: tăng dần, -1: giảm dần
+
+            // Đặt đối tượng sắp xếp theo tham số từ frontend
+            sortObject = { [field]: order };
+        }
+
         const count = await Product.countDocuments(filter);
-        // --- Tạo thông tin phân trang ---
         const paging = paginationHelper(
             { currentPage: 1, limitItem: 10 },
             query,
             count
         );
-        // --- Truy vấn sản phẩm ---
         const products = await Product.find(filter)
-            .select("name price discount images rating reviewCount")
+            .select("name price discount images rating reviewCount inStock")
             .skip(paging.skip)
             .limit(paging.limitItem)
-            .sort({ createdAt: -1 }); 
-        // --- Trả về ---
+            .sort(sortObject); 
+
         res.json({
             code: 200,
             message: "Thành công",

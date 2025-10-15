@@ -6,7 +6,7 @@ const paginationHelper = require("../../helpers/pagination")
 exports.getOrdersByUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        const orders = await Order.find({ userId: userId });
+        const orders = await Order.find({ userId: userId }).sort({ createdAt: -1 });
         if (!orders) {
             return res.status(404).json({ message: "No orders found" });
         }

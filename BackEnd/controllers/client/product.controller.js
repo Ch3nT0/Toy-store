@@ -8,32 +8,36 @@ module.exports.getProducts = async (req, res) => {
     try {
         const query = req.query;
         const search = searchHelper(req.query);
-        // --- Lọc theo giá ---
         const filter = { ...search };
         if (query.minPrice || query.maxPrice) {
             filter.price = {};
             if (query.minPrice) filter.price.$gte = parseFloat(query.minPrice);
             if (query.maxPrice) filter.price.$lte = parseFloat(query.maxPrice);
         }
-        // --- Lọc theo giảm giá (discount) ---
         if (query.discount) {
             filter.discount = { $gte: parseFloat(query.discount) };
         }
-        // --- Đếm tổng số sản phẩm theo điều kiện ---
+
+        filter.inStock = { $gt: 0 };
         const count = await Product.countDocuments(filter);
-        // --- Tạo thông tin phân trang ---
         const paging = paginationHelper(
             { currentPage: 1, limitItem: 10 },
             query,
             count
         );
-        // --- Truy vấn sản phẩm ---
+
+        let sortObject = { createdAt: -1 };
+        if (query.sortBy && query.sortOrder) {
+            const order = query.sortOrder === 'asc' ? 1 : -1;
+            sortObject = { [query.sortBy]: order };
+        }
+
         const products = await Product.find(filter)
-            .select("name price discount images rating reviewCount")
+            .select("name price discount images rating reviewCount inStock")
             .skip(paging.skip)
             .limit(paging.limitItem)
-            .sort({ createdAt: -1 }); 
-        // --- Trả về ---
+            .sort(sortObject);
+
         res.json({
             code: 200,
             message: "Thành công",
@@ -54,10 +58,10 @@ module.exports.getProducts = async (req, res) => {
 // [GET] /products/TopSale
 module.exports.getProductsTopSale = async (req, res) => {
     try {
-        const products = await Product.find()
+        const products = await Product.find({ inStock: { $gt: 0 } })
             .sort({ sold: -1 })
             .limit(5)
-            .select("name price discount images rating reviewCount sold");
+            .select("name price discount images rating reviewCount sold inStock");
 
         res.json({
             code: 200,
@@ -76,10 +80,10 @@ module.exports.getProductsTopSale = async (req, res) => {
 // [GET] /products/TopDiscount
 module.exports.getProductsTopDiscount = async (req, res) => {
     try {
-        const products = await Product.find()
+        const products = await Product.find({ inStock: { $gt: 0 } })
             .sort({ discount: -1 })
             .limit(5)
-            .select("name price discount images rating reviewCount discount");
+            .select("name price discount images rating reviewCount discount inStock");
 
         res.json({
             code: 200,

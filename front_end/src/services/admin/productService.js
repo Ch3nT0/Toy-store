@@ -11,12 +11,18 @@ export const getProductTopSale = async () => {
     return result;
 }
 
-export const getProduct = async (page = 1,limit = 8,keyword = "",minPrice = "",maxPrice = "",discount = "") => {
+export const getProduct = async (page = 1,limit = 8,keyword = "",minPrice = "",maxPrice = "",discount = "",sortBy = "",sortOrder = "" ) => {
     let url = `/products?page=${page}&limit=${limit}&keyword=${encodeURIComponent(keyword)}`;
 
     if (minPrice !== "") url += `&minPrice=${minPrice}`;
     if (maxPrice !== "") url += `&maxPrice=${maxPrice}`;
     if (discount !== "") url += `&discount=${discount}`;
+    
+    if (sortBy !== "" && sortOrder !== "") {
+        url += `&sortBy=${sortBy}`;
+        url += `&sortOrder=${sortOrder}`;
+    }
+
     const result = await getAuth(url);
     return result;
 };
