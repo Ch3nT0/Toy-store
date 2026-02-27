@@ -3,6 +3,5 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
-# Nhớ port 3001 của bạn
 EXPOSE 3001
 CMD ["npm", "start"]
