@@ -5,6 +5,7 @@
       "name": "backend-app",
       "image": "469164977878.dkr.ecr.us-east-1.amazonaws.com/my-be-repo",
       "cpu": 0,
+      "memoryReservation": 256,
       "portMappings": [
         {
           "name": "backend-app-3001-tcp",
@@ -35,8 +36,8 @@
   "requiresCompatibilities": [
     "EC2"
   ],
-  "cpu": "1024",
-  "memory": "1024",
+  "cpu": "256",
+  "memory": "512",
   "runtimePlatform": {
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
