@@ -11,7 +11,7 @@ env:
   ECR_REPOSITORY: my-be-repo
   ECS_SERVICE: my-be-service
   ECS_CLUSTER: my-cluster
-  CONTAINER_NAME: backend-app # Tên container trong Task Definition bạn đã tạo ở bước 5
+  CONTAINER_NAME: backend-app
 
 jobs:
   deploy-be:
@@ -38,7 +38,6 @@ jobs:
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./BackEnd
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # Xuất tag image để bước sau sử dụng
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Fill in the new image ID in the Amazon ECS task definition
@@ -48,13 +47,12 @@ jobs:
           task-definition: BackEnd/task-definition.json
           container-name: ${{ env.CONTAINER_NAME }}
           image: ${{ steps.build-image.outputs.image }}
-          # ĐÂY LÀ NƠI TRUYỀN CÁC BIẾN ENV CỦA BẠN
           environment-variables: |
-            EMAIL_USER=${{ secrets.BE_EMAIL_USER }}
-            EMAIL_PASSWORD=${{ secrets.BE_EMAIL_PASSWORD }}
-            JWT_SECRET=${{ secrets.BE_JWT_SECRET }}
-            JWT_EXPIRES_IN=${{ secrets.BE_JWT_EXPIRES_IN }}
-            MONGO_URL=${{ secrets.BE_MONGO_URL }}
+            EMAIL_USER=${{ secrets.EMAIL_USER }}
+            EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRES_IN=${{ secrets.JWT_EXPIRES_IN }}
+            MONGO_URL=${{ secrets.MONGO_URL }}
             PORT=3001
 
       - name: Deploy Amazon ECS task definition
