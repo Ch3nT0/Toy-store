@@ -1,5 +1,5 @@
 {
-  "taskDefinitionArn": "my-task-family",
+  "family": "my-task-family",
   "containerDefinitions": [
     {
       "name": "backend-app",
@@ -15,36 +15,9 @@
         }
       ],
       "essential": true,
-      "environment": [
-        {
-          "name": "EMAIL_USER",
-          "value": "manhledoan14112004@gmail.com"
-        },
-        {
-          "name": "EMAIL_PASSWORD",
-          "value": "llry nqkd ignq loto"
-        },
-        {
-          "name": "MONGO_URL",
-          "value": "mongodb+srv://manhledoan14112004:hvR8DtXo3bM8cN5j@cluster0.dzgojjy.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-        },
-        {
-          "name": "JWT_EXPIRES_IN",
-          "value": "7d"
-        },
-        {
-          "name": "PORT",
-          "value": "3001"
-        },
-        {
-          "name": "JWT_SECRET",
-          "value": "d3f2ec1e4a68c90fac292cff4305810f2db391cb3c086908c7354df17a2d531be66e133dcd44eb484cf6da3cad4335a4f843c52987779a8c4394635c64004fe7"
-        }
-      ],
-      "environmentFiles": [],
+      "environment": [],
       "mountPoints": [],
       "volumesFrom": [],
-      "ulimits": [],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
@@ -52,53 +25,13 @@
           "awslogs-create-group": "true",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
-        },
-        "secretOptions": []
-      },
-      "systemControls": []
+        }
+      }
     }
   ],
-  "family": "my-task-family",
   "taskRoleArn": "arn:aws:iam::469164977878:role/ecsTaskExecutionRole",
   "executionRoleArn": "arn:aws:iam::469164977878:role/ecsTaskExecutionRole",
   "networkMode": "host",
-  "revision": 1,
-  "volumes": [],
-  "status": "ACTIVE",
-  "requiresAttributes": [
-    {
-      "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
-    },
-    {
-      "name": "ecs.capability.execution-role-awslogs"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.task-iam-role-network-host"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.ecr-auth"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.task-iam-role"
-    },
-    {
-      "name": "ecs.capability.execution-role-ecr-pull"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
-    },
-    {
-      "name": "com.amazonaws.ecs.capability.docker-remote-api.1.29"
-    }
-  ],
-  "placementConstraints": [],
-  "compatibilities": [
-    "EC2",
-    "MANAGED_INSTANCES"
-  ],
   "requiresCompatibilities": [
     "EC2"
   ],
@@ -107,8 +40,5 @@
   "runtimePlatform": {
     "cpuArchitecture": "X86_64",
     "operatingSystemFamily": "LINUX"
-  },
-  "registeredAt": "2026-02-27T08:36:29.602Z",
-  "registeredBy": "arn:aws:iam::469164977878:user/admin",
-  "tags": []
+  }
 }
